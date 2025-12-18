@@ -1,22 +1,14 @@
-[
-  {
-    "username": "daire1",
-    "password": "sifre1",
-    "daireNo": "1",
-    "sahibi": "Ahmet Yılmaz",
-    "aidatBorcu": "750 TL",
-    "yakitBorcu": "1.200 TL",
-    "digerBorc": "0 TL",
-    "not": "Lütfen ödemeleri ayın 15'ine kadar yapınız."
-  },
-  {
-    "username": "daire2",
-    "password": "sifre2",
-    "daireNo": "2",
-    "sahibi": "Ayşe Demir",
-    "aidatBorcu": "750 TL",
-    "yakitBorcu": "950 TL",
-    "digerBorc": "150 TL (Tamirat)",
-    "not": "Geçen aydan kalan bakiye eklenmiştir."
-  }
-]
+{
+  "daireler": [
+    {
+      "username": "daire1",
+      "password": "123",
+      "daireNo": "1",
+      "sahibi": "Ahmet Yılmaz",
+      "aidatBorcu": "750 TL",
+      "yakitBorcu": "1.200 TL",
+      "digerBorc": "0 TL",
+      "not": "Lütfen ödemeleri ayın 15'ine kadar yapınız."
+    }
+  ]
+}
