@@ -3,91 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site Sakini Bilgi Sistemi</title>
+    <title>Site Sakini Portalı</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        h2 { text-align: center; color: #1a73e8; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background-color: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        button:hover { background-color: #1557b0; }
-        #dashboard { display: none; }
-        .data-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .label { font-weight: bold; color: #555; }
-        .value { color: #d93025; font-weight: bold; }
-        .note-box { background: #fff8e1; padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 0.9em; border-left: 4px solid #fbc02d; }
-        .logout-btn { background-color: #607d8b; margin-top: 20px; }
+        :root { --primary: #2c3e50; --secondary: #3498db; --accent: #e74c3c; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
+        .container { max-width: 600px; margin: 30px auto; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        
+        /* Sekme Sistemi */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: #ddd; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .tab-btn.active { background: var(--secondary); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Stil Detayları */
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
+        .btn-main { background: var(--secondary); color: white; }
+        .btn-wa { background: #25D366; color: white; text-decoration: none; display: inline-block; text-align: center; width: 95%; }
+        .btn-print { background: #95a5a6; color: white; }
+        
+        .borc-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #eee; }
+        .amount { color: var(--accent); font-weight: bold; font-size: 1.2em; }
+        .announcement { background: #fff3cd; border-left: 5px solid #ffc107; padding: 10px; margin-bottom: 10px; font-size: 0.9em; }
+        .forum-msg { border-bottom: 1px dashed #ccc; padding: 10px 0; }
+        .forum-msg small { color: #888; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="login-box">
-        <h2>Daire Girişi</h2>
-        <input type="text" id="username" placeholder="Kullanıcı Adı (Daire No)">
+    <div id="login-screen" class="card">
+        <h2 style="text-align: center;">Site Yönetim Portalı</h2>
+        <input type="text" id="username" placeholder="Daire Kullanıcı Adı">
         <input type="password" id="password" placeholder="Şifre">
-        <button onclick="girisYap()">Sisteme Giriş Yap</button>
+        <button class="btn btn-main" onclick="girisYap()">Giriş Yap</button>
     </div>
 
-    <div id="dashboard">
-        <h2 id="welcome-msg">Hoş Geldiniz</h2>
-        <div class="data-row"><span class="label">Daire No:</span> <span id="dno" style="color:#1a73e8"></span></div>
-        <div class="data-row"><span class="label">Aidat Borcu:</span> <span id="aidat" class="value"></span></div>
-        <div class="data-row"><span class="label">Yakıt Borcu:</span> <span id="yakit" class="value"></span></div>
-        <div class="data-row"><span class="label">Diğer:</span> <span id="diger" class="value"></span></div>
-        
-        <div class="note-box">
-            <strong>Yönetim Notu:</strong><br>
-            <span id="yonetim-notu"></span>
+    <div id="main-panel" style="display: none;">
+        <div class="card" id="header-info">
+            <h3 id="welcome-name">Hoş Geldiniz</h3>
+            <div id="duyuru-alani"></div>
         </div>
-        
-        <button class="logout-btn" onclick="window.location.reload()">Çıkış Yap</button>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('borc')">Borçlar</button>
+            <button class="tab-btn" onclick="openTab('forum')">Forum</button>
+        </div>
+
+        <div id="borc" class="tab-content active card">
+            <div id="print-area">
+                <h4>Özet Ekstresi</h4>
+                <div class="borc-item"><span>Aidat:</span> <span class="amount" id="aidat"></span></div>
+                <div class="borc-item"><span>Yakıt:</span> <span class="amount" id="yakit"></span></div>
+                <div class="borc-item"><span>Diğer:</span> <span class="amount" id="diger"></span></div>
+            </div>
+            
+            <button class="btn btn-print" onclick="ekstreIndir()">PDF/Ekran Görüntüsü Al</button>
+            <a id="wa-link" href="#" target="_blank" class="btn btn-wa" style="margin-top: 15px;">WhatsApp ile Bildir</a>
+        </div>
+
+        <div id="forum" class="tab-content card">
+            <h4>Site İçi Mesajlaşma / Forum</h4>
+            <div id="forum-list"></div>
+            <p style="font-size: 0.8em; color: gray; margin-top: 15px;">* Mesaj yazmak için lütfen yönetici ile iletişime geçin.</p>
+        </div>
+
+        <button class="btn" style="background: #eee;" onclick="location.reload()">Güvenli Çıkış</button>
     </div>
 </div>
 
 <script>
-async function girisYap() {
-    const userInp = document.getElementById('username').value.trim();
-    const passInp = document.getElementById('password').value.trim();
+let currentUser = null;
 
-    if(!userInp || !passInp) {
-        alert("Lütfen alanları doldurun.");
-        return;
-    }
+async function girisYap() {
+    const u = document.getElementById('username').value;
+    const p = document.getElementById('password').value;
 
     try {
-        // GitHub Pages önbellek sorunu yaşamamak için sonuna rastgele sayı ekliyoruz
-        const url = './veriler.json?v=' + Math.random();
-        
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error('JSON dosyası bulunamadı. Lütfen dosya adını kontrol edin.');
-        }
-
+        const response = await fetch('./veriler.json?v=' + Math.random());
         const data = await response.json();
-        const user = data.daireler.find(d => d.username === userInp && d.password === passInp);
+        const user = data.daireler.find(d => d.username === u && d.password === p);
 
         if (user) {
-            // Giriş başarılı
-            document.getElementById('login-box').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
+            currentUser = user;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-panel').style.display = 'block';
             
-            document.getElementById('welcome-msg').innerText = `Sn. ${user.sahibi}`;
-            document.getElementById('dno').innerText = user.daireNo;
-            document.getElementById('aidat').innerText = user.aidatBorcu;
-            document.getElementById('yakit').innerText = user.yakitBorcu;
-            document.getElementById('diger').innerText = user.digerBorc;
-            document.getElementById('yonetim-notu').innerText = user.not;
-        } else {
-            alert("Hatalı kullanıcı adı veya şifre!");
-        }
-    } catch (error) {
-        console.error("Hata:", error);
-        alert("Sistem hatası: " + error.message);
-    }
+            // Verileri Doldur
+            document.getElementById('welcome-name').innerText = "Sn. " + user.sahibi;
+            document.getElementById('aidat').innerText = user.aidatBorcu + " TL";
+            document.getElementById('yakit').innerText = user.yakitBorcu + " TL";
+            document.getElementById('diger').innerText = user.digerBorc + " TL";
+            
+            // Duyuruları Getir
+            const dDiv = document.getElementById('duyuru-alani');
+            data.siteGenel.duyurular.forEach(msg => {
+                dDiv.innerHTML += `<div class="announcement">📢 ${msg}</div>`;
+            });
+
+            // Forumu Getir
+            const fDiv = document.getElementById('forum-list');
+            data.forumMesajlari.forEach(m => {
+                fDiv.innerHTML += `<div class="forum-msg"><strong>${m.kisi}:</strong> ${m.mesaj} <br><small>${m.tarih}</small></div>`;
+            });
+
+            // WhatsApp Linki Oluştur
+            const waMsg = encodeURIComponent(`Merhaba, ben ${user.sahibi} (Daire ${user.daireNo}). Borç durumumu sorguladım. Bilgi almak/Ödeme bildirmek istiyorum.`);
+            document.getElementById('wa-link').href = `https://wa.me/905XXXXXXXXXX?text=${waMsg}`; // Buraya kendi numaranı yaz
+
+        } else { alert("Hatalı giriş!"); }
+    } catch (e) { alert("Veri yüklenemedi!"); }
+}
+
+function openTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    event.currentTarget.classList.add('active');
+}
+
+function ekstreIndir() {
+    const element = document.getElementById('print-area');
+    html2pdf().from(element).save(`Daire_${currentUser.daireNo}_Ekstre.pdf`);
 }
 </script>
-
 </body>
 </html>
