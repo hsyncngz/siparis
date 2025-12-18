@@ -9,6 +9,17 @@
       "yakitBorcu": "1.200 TL",
       "digerBorc": "0 TL",
       "not": "Lütfen ödemeleri ayın 15'ine kadar yapınız."
+        {
+      "username": "daire2",
+      "password": "123",
+      "daireNo": "1",
+      "sahibi": "hc Yılmaz",
+      "aidatBorcu": "750 TL",
+      "yakitBorcu": "1.200 TL",
+      "digerBorc": "0 TL",
+      "not": "Lütfen ödemeleri ayın 15'ine kadar yapınız."
+    }
+    
     }
   ]
 }
