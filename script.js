@@ -1,70 +1,72 @@
-async function verileriGetir() {
+// İki farklı JSON'u aynı anda okuyan ana fonksiyon
+async function paneliHazirla(user) {
     try {
-        const response = await fetch('./veriler.json?v=' + Math.random());
-        return await response.json();
+        // İki dosyayı da çekiyoruz
+        const [borcRes, forumRes] = await Promise.all([
+            fetch('./veriler.json?v=' + Math.random()),
+            fetch('./forum.json?v=' + Math.random())
+        ]);
+
+        const borcData = await borcRes.json();
+        const forumData = await forumRes.json();
+
+        // 1. Borç Bilgilerini Yazdır (veriler.json'dan)
+        document.getElementById('aidat').innerText = user.aidatBorcu + " TL";
+        document.getElementById('yakit').innerText = user.yakitBorcu + " TL";
+        document.getElementById('diger').innerText = user.digerBorc + " TL";
+
+        // 2. Duyuruları Yazdır (forum.json'dan)
+        const dDiv = document.getElementById('duyuru-alani');
+        dDiv.innerHTML = "";
+        forumData.duyurular.forEach(msg => {
+            dDiv.innerHTML += `<div class="announcement">📢 ${msg}</div>`;
+        });
+
+        // 3. Forum Mesajlarını Yazdır (forum.json'dan)
+        const fDiv = document.getElementById('forum-list');
+        fDiv.innerHTML = "";
+        forumData.mesajlar.forEach(m => {
+            fDiv.innerHTML += `
+                <div class="forum-msg">
+                    <strong>${m.kisi}:</strong> ${m.mesaj} 
+                    <br><small>${m.tarih}</small>
+                </div>`;
+        });
+
+        saatKontrolu(user.sahibi);
+
     } catch (error) {
-        console.error("Veri hatası:", error);
-        return null;
+        console.error("Veri yükleme hatası:", error);
     }
 }
 
-async function girisYap() {
-    const userInp = document.getElementById('username').value.trim();
-    const passInp = document.getElementById('password').value.trim();
-    
-    const data = await verileriGetir();
-    if (!data) return;
-
-    const user = data.daireler.find(d => d.username === userInp && d.password === passInp);
-
-    if (user) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-panel').style.display = 'block';
-        panelDoldur(user, data);
-    } else {
-        alert("Hatalı kullanıcı adı veya şifre!");
-    }
-}
-
-function panelDoldur(user, data) {
-    // Borç Bilgileri
-    document.getElementById('welcome-name').innerText = `Sn. ${user.sahibi}`;
-    document.getElementById('aidat').innerText = user.aidatBorcu + " TL";
-    document.getElementById('yakit').innerText = user.yakitBorcu + " TL";
-    document.getElementById('diger').innerText = user.digerBorc + " TL";
-
-    // Forum Listesi
-    const forumList = document.getElementById('forum-list');
-    forumList.innerHTML = "";
-    data.forumMesajlari.forEach(m => {
-        forumList.innerHTML += `<div class="forum-msg"><strong>${m.kisi}:</strong> ${m.mesaj} <br><small>${m.tarih}</small></div>`;
-    });
-
-    // Mesaj Yazma Saat Kontrolü (09:00 - 22:00)
-    const su an = new Date();
-    const saat = su an.getHours();
+function saatKontrolu(kullaniciAdi) {
+    const suAn = new Date();
+    const saat = suAn.getHours();
     const mesajAlani = document.getElementById('mesaj-yazma-alani');
 
+    // 09:00 - 22:00 arası yazılabilir
     if (saat >= 9 && saat < 22) {
         mesajAlani.innerHTML = `
-            <textarea id="yeni-mesaj" placeholder="Yönetime veya foruma iletmek istediğiniz mesajı yazın..." style="width:100%; height:80px; margin-top:10px;"></textarea>
-            <button class="btn btn-main" onclick="mesajGonder('${user.sahibi}')">Mesajı İlet</button>
+            <textarea id="yeni-mesaj" placeholder="Mesajınızı buraya yazın..." style="width:100%; height:80px; padding:10px; border-radius:8px; border:1px solid #ccc;"></textarea>
+            <button class="btn btn-main" onclick="mesajGonder('${kullaniciAdi}')">Gönder</button>
         `;
     } else {
-        mesajAlani.innerHTML = `<p style="color:red; font-size:0.9em; font-weight:bold;">⚠️ Forum saat 22:00'den sonra mesaj alımına kapanmaktadır. Sabah 09:00'da tekrar açılacaktır.</p>`;
+        mesajAlani.innerHTML = `<p style="color:#e74c3c; font-weight:bold; background:#ffebee; padding:10px; border-radius:8px;">
+            ⚠️ Forum 22:00 - 09:00 saatleri arasında mesaj alımına kapalıdır.
+        </p>`;
     }
 }
 
 function mesajGonder(isim) {
-    const mesaj = document.getElementById('yeni-mesaj').value;
-    if(mesaj.length < 5) {
-        alert("Lütfen geçerli bir mesaj yazın.");
+    const mesajText = document.getElementById('yeni-mesaj').value;
+    if (mesajText.length < 5) {
+        alert("Mesaj çok kısa.");
         return;
     }
-    
-    // GitHub statik olduğu için burası doğrudan JSON'u değiştiremez.
-    // Sakini bir Google Form'a yönlendirmek en sağlıklı çözümdür:
-    const formLink = "https://docs.google.com/forms/d/e/FORUM_ID_BURAYA/viewform?entry.12345=" + encodeURIComponent(isim + ": " + mesaj);
-    window.open(formLink, '_blank');
-    alert("Mesajınız iletilmek üzere Google Formlar'a yönlendiriliyor. Onaylandığında forumda yayınlanacaktır.");
+
+    // Google Form yönlendirmesi
+    const formUrl = "https://docs.google.com/forms/d/e/FORM_ID/viewform?entry.1= " + encodeURIComponent(isim) + "&entry.2=" + encodeURIComponent(mesajText);
+    window.open(formUrl, '_blank');
+    alert("Mesajınız yönetici onayına gönderildi.");
 }
