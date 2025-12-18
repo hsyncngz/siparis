@@ -1,24 +1,25 @@
 {
+  "siteGenel": {
+    "siteAdi": "Huzur Apartmanı",
+    "duyurular": [
+      "Asansör bakımı 20 Aralık Perşembe günü yapılacaktır.",
+      "Bahçe ilaçlaması nedeniyle evcil hayvanlara dikkat edilmelidir."
+    ]
+  },
   "daireler": [
     {
       "username": "daire1",
-      "password": "sifre1",
+      "password": "123",
       "daireNo": "1",
       "sahibi": "Ahmet Yılmaz",
-      "aidatBorcu": "750 TL",
-      "yakitBorcu": "1.200 TL",
-      "digerBorc": "0 TL",
-      "not": "Lütfen ödemeleri ayın 15'ine kadar yapınız."
-    },
-    {
-      "username": "daire2",
-      "password": "sifre2",
-      "daireNo": "2",
-      "sahibi": "Hüseyin Cengiz",
-      "aidatBorcu": "750 TL",
-      "yakitBorcu": "950 TL",
-      "digerBorc": "150 TL (Tamirat)",
-      "not": "Geçen aydan kalan bakiye eklenmiştir.(tamirat aciklamadi olarak otopark kapısı motoru tamir edilde ekler bölümünde fatura detayini görebilirsiniz)"
+      "aidatBorcu": "750",
+      "yakitBorcu": "1200",
+      "digerBorc": "0",
+      "not": "Kasım ayı ödemesi alındı."
     }
+  ],
+  "forumMesajlari": [
+    {"kisi": "Yönetim", "mesaj": "Yeni spor salonu saati 09:00 - 22:00 arasıdır.", "tarih": "15.12.2025"},
+    {"kisi": "Daire 5", "mesaj": "Otopark girişindeki lamba yanmıyor.", "tarih": "16.12.2025"}
   ]
 }
