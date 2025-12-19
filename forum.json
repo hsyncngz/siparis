@@ -1,10 +1,10 @@
 {
   "duyurular": [
-    "Site girişindeki bariyer bakımı tamamlanmıştır.",
-    "Lütfen çöplerinizi saat 19:00 - 20:00 arası bırakınız."
+    "Asansör bakımı 20 Aralık Perşembe günü yapılacaktır.",
+    "Bahçe ilaçlaması nedeniyle evcil hayvanlara dikkat edilmelidir."
   ],
   "mesajlar": [
-    {"kisi": "Yönetim", "mesaj": "Tüm sakinlerimize iyi haftalar dileriz.", "tarih": "18.12.2025 09:00"},
-    {"kisi": "Daire 45", "mesaj": "Otopark temizliği için teşekkürler.", "tarih": "18.12.2025 11:30"}
+    {"kisi": "Yönetim", "mesaj": "Yeni spor salonu saati 09:00 - 22:00 arasıdır.", "tarih": "15.12.2025"},
+    {"kisi": "Daire 5", "mesaj": "Otopark girişindeki lamba yanmıyor.", "tarih": "16.12.2025"}
   ]
 }
