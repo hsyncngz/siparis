@@ -3,46 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site Yönetim Paneli</title>
+    <title>Site Sakini Portalı</title>
     <style>
         :root { --primary: #1e3a8a; --secondary: #3b82f6; --bg: #f8fafc; --text: #1e293b; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; min-height: 100vh; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; }
         .app-container { width: 100%; max-width: 500px; padding: 20px; }
-        
-        /* Kart Yapısı */
-        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2, h3 { margin-top: 0; color: var(--primary); text-align: center; }
-
-        /* Giriş Formu */
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h2, h3 { color: var(--primary); text-align: center; margin-top: 0; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #172554; }
-
-        /* Panel Detayları */
         .debt-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
-        .debt-label { font-weight: 500; }
         .debt-value { color: #dc2626; font-weight: bold; }
-        
-        /* Duyuru ve Forum */
-        .announcement { background: #eff6ff; border-left: 4px solid var(--secondary); padding: 12px; margin-bottom: 10px; border-radius: 4px; font-size: 0.9em; }
-        .forum-list { max-height: 300px; overflow-y: auto; margin-top: 15px; }
-        .forum-item { background: #f1f5f9; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9em; }
+        .announcement { background: #eff6ff; border-left: 4px solid var(--secondary); padding: 10px; margin-bottom: 10px; font-size: 0.9em; }
+        .forum-item { background: #f1f5f9; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85em; }
         .forum-item small { color: #64748b; display: block; margin-top: 5px; }
-
-        /* Mesaj Yazma Alanı */
-        #mesaj-yazma-alani textarea { width: 100%; height: 80px; border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px; box-sizing: border-box; resize: none; }
-        .time-badge { display: inline-block; background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; margin-bottom: 10px; }
+        textarea { width: 100%; height: 80px; border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px; box-sizing: border-box; resize: none; }
+        .time-badge { background: #fee2e2; color: #991b1b; padding: 8px; border-radius: 6px; text-align: center; font-size: 0.8em; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <div id="login-screen" class="card">
-        <h2>Site Sakini Girişi</h2>
-        <input type="text" id="username" placeholder="Kullanıcı Adı (Daire No)">
+        <h2>Site Girişi</h2>
+        <input type="text" id="username" placeholder="Kullanıcı Adı">
         <input type="password" id="password" placeholder="Şifre">
-        <button class="btn btn-primary" onclick="girisYap()">Giriş Yap</button>
+        <button class="btn btn-primary" onclick="girisYap()">Sisteme Giriş</button>
     </div>
 
     <div id="main-panel" style="display: none;">
@@ -52,19 +39,19 @@
         </div>
 
         <div class="card">
-            <h3>Mali Durum</h3>
-            <div class="debt-row"><span>Aidat Borcu</span><span id="aidat" class="debt-value">0 TL</span></div>
-            <div class="debt-row"><span>Yakıt Borcu</span><span id="yakit" class="debt-value">0 TL</span></div>
-            <div class="debt-row"><span>Diğer</span><span id="diger" class="debt-value">0 TL</span></div>
+            <h3>Borç Durumu</h3>
+            <div class="debt-row"><span>Aidat</span><span id="aidat" class="debt-value"></span></div>
+            <div class="debt-row"><span>Yakıt</span><span id="yakit" class="debt-value"></span></div>
+            <div class="debt-row"><span>Diğer</span><span id="diger" class="debt-value"></span></div>
         </div>
 
         <div class="card">
             <h3>Site Forumu</h3>
             <div id="mesaj-yazma-alani"></div>
-            <div id="forum-list" class="forum-list"></div>
+            <div id="forum-list" style="margin-top:15px;"></div>
         </div>
 
-        <button class="btn" style="background:#cbd5e1" onclick="location.reload()">Güvenli Çıkış</button>
+        <button class="btn" style="background:#cbd5e1" onclick="location.reload()">Çıkış Yap</button>
     </div>
 </div>
 
