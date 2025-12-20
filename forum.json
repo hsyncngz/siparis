@@ -1,10 +1,10 @@
 {
   "duyurular": [
-    "Asansör bakımı 20 Aralık Perşembe günü yapılacaktır.",
-    "Bahçe ilaçlaması nedeniyle evcil hayvanlara dikkat edilmelidir."
+    "20 Aralık asansör bakımı yapılacaktır.",
+    "Otopark çizgileri yenilenmiştir."
   ],
   "mesajlar": [
-    {"kisi": "Yönetim", "mesaj": "Yeni spor salonu saati 09:00 - 22:00 arasıdır.", "tarih": "15.12.2025"},
-    {"kisi": "Daire 5", "mesaj": "Otopark girişindeki lamba yanmıyor.", "tarih": "16.12.2025"}
+    {"kisi": "Yönetim", "mesaj": "Tüm sakinlerimize huzurlu günler dileriz.", "tarih": "19.12.2025 10:00"},
+    {"kisi": "Daire 10", "mesaj": "Bahçe ışıklandırması çok güzel olmuş.", "tarih": "19.12.2025 22:15"}
   ]
 }
