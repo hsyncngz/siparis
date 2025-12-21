@@ -5,159 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Site Sakini Portalı</title>
     <style>
-        :root { --primary: #1e3a8a; --secondary: #3b82f6; --bg: #f8fafc; --text: #1e293b; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; min-height: 100vh; }
-        .app-container { width: 100%; max-width: 500px; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2, h3 { color: var(--primary); text-align: center; margin-top: 0; }
-        input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: all 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:active { transform: scale(0.98); }
-        .debt-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
-        .debt-value { color: #dc2626; font-weight: bold; }
-        .announcement { background: #eff6ff; border-left: 4px solid var(--secondary); padding: 12px; margin-bottom: 10px; border-radius: 4px; font-size: 0.9em; }
-        .forum-item { background: #f1f5f9; padding: 12px; border-radius: 10px; margin-bottom: 10px; font-size: 0.85em; }
-        .forum-item small { color: #64748b; display: block; margin-top: 5px; }
-        textarea { width: 100%; height: 90px; border-radius: 10px; border: 1px solid #e2e8f0; padding: 12px; box-sizing: border-box; resize: none; margin-bottom: 10px; }
-        .time-badge { background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 10px; text-align: center; font-size: 0.85em; font-weight: 500; }
+        :root { --primary: #1e3a8a; --bg: #f8fafc; }
+        body { font-family: sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; background: var(--primary); color: white; }
+        .debt-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .debt-value { color: red; font-weight: bold; }
+        .announcement { background: #e0f2fe; padding: 10px; margin: 10px 0; border-radius: 5px; font-size: 0.9em; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <div id="login-screen" class="card">
-        <h2>Site Girişi</h2>
+        <h3>Site Sakini Girişi</h3>
+        <p style="font-size: 0.8em; color: gray;">(Veriler Google Tablo'dan çekilir)</p>
         <input type="text" id="username" placeholder="Kullanıcı Adı">
         <input type="password" id="password" placeholder="Şifre">
-        <button id="loginBtn" class="btn btn-primary" onclick="girisYap()">Sisteme Giriş Yap</button>
+        <button class="btn" onclick="sadeceGoogleIleGiris()">Giriş Yap</button>
     </div>
 
-    <div id="main-panel" style="display: none;">
-        <div class="card">
-            <h3 id="welcome-msg">Hoş Geldiniz</h3>
-            <div id="duyuru-alani"></div>
-        </div>
-
-        <div class="card">
-            <h3>Borç Durumu</h3>
-            <div class="debt-row"><span>Aidat</span><span id="aidat" class="debt-value"></span></div>
-            <div class="debt-row"><span>Yakıt</span><span id="yakit" class="debt-value"></span></div>
-            <div class="debt-row"><span>Diğer</span><span id="diger" class="debt-value"></span></div>
-        </div>
-
-        <div class="card">
-            <h3>Site Forumu</h3>
-            <div id="mesaj-yazma-alani"></div>
-            <div id="forum-list" style="margin-top:15px;"></div>
-        </div>
-
-        <button class="btn" style="background:#cbd5e1; color:#475569" onclick="location.reload()">Güvenli Çıkış</button>
+    <div id="main-panel" class="card" style="display: none;">
+        <h3 id="welcome-msg"></h3>
+        <div id="duyuru-alani"></div>
+        <div class="debt-row"><span>Aidat:</span><span id="aidat" class="debt-value"></span></div>
+        <div class="debt-row"><span>Yakıt:</span><span id="yakit" class="debt-value"></span></div>
+        <div class="debt-row"><span>Diğer:</span><span id="diger" class="debt-value"></span></div>
+        <button class="btn" style="background:#64748b; margin-top:20px;" onclick="location.reload()">Çıkış</button>
     </div>
 </div>
 
 <script>
-// Senin Google Sheets CSV Linkin
-const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
+// Sadece senin Google Sheets linkin
+const gSheetLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
 
-async function girisYap() {
-    const btn = document.getElementById('loginBtn');
-    const uInp = document.getElementById('username').value.trim();
-    const pInp = document.getElementById('password').value.trim();
-
-    if (!uInp || !pInp) {
-        alert("Lütfen tüm alanları doldurun.");
-        return;
-    }
-
-    // Tuşu geçici olarak devre dışı bırakalım (çift tıklamayı önlemek için)
-    btn.disabled = true;
-    btn.innerText = "Yükleniyor...";
+async function sadeceGoogleIleGiris() {
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value.trim();
 
     try {
-        const response = await fetch(sheetUrl + "&cache=" + Math.random());
-        const text = await response.text();
+        // Eski JSON dosyasını değil, doğrudan Google linkini çağırıyoruz
+        const response = await fetch(gSheetLink + "&t=" + new Date().getTime());
+        const csvText = await response.text();
         
-        // CSV Parçalama işlemi
-        const rows = text.split('\n').filter(row => row.trim() !== '');
-        const headers = rows[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        // CSV'yi JSON'a çevir
+        const satirlar = csvText.split('\n').filter(s => s.trim() !== '');
+        const basliklar = satirlar[0].split(',').map(b => b.trim().replace(/^"|"$/g, ''));
         
-        const daireler = rows.slice(1).map(row => {
-            const values = row.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-            let obj = {};
-            headers.forEach((header, i) => {
-                obj[header] = values[i] || "";
+        const veriler = satirlar.slice(1).map(satir => {
+            const degerler = satir.split(',').map(d => d.trim().replace(/^"|"$/g, ''));
+            let obje = {};
+            basliklar.forEach((baslik, index) => {
+                obje[baslik] = degerler[index] || "";
             });
-            return obj;
+            return obje;
         });
 
-        const user = daireler.find(d => d.username === uInp && d.password === pInp);
+        console.log("Google'dan gelen güncel liste:", veriler);
 
-        if (user) {
+        // Arama yap
+        const kullanıcı = veriler.find(d => String(d.username) === u && String(d.password) === p);
+
+        if (kullanıcı) {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-panel').style.display = 'block';
             
-            document.getElementById('welcome-msg').innerText = `Sn. ${user.sahibi}`;
-            document.getElementById('aidat').innerText = (user.aidatBorcu || "0") + " TL";
-            document.getElementById('yakit').innerText = (user.yakitBorcu || "0") + " TL";
-            document.getElementById('diger').innerText = (user.digerBorc || "0") + " TL";
+            document.getElementById('welcome-msg').innerText = "Sn. " + kullanıcı.sahibi;
+            document.getElementById('aidat').innerText = kullanıcı.aidatBorcu + " TL";
+            document.getElementById('yakit').innerText = kullanıcı.yakitBorcu + " TL";
+            document.getElementById('diger').innerText = kullanıcı.digerBorc + " TL";
             
-            // Forumu yükle (Hata alsa bile giriş devam eder)
-            forumYukle(user.sahibi).catch(e => console.log("Forum yüklenemedi."));
+            // Not varsa duyuru olarak göster
+            if(kullanıcı.not) {
+                document.getElementById('duyuru-alani').innerHTML = `<div class="announcement"><b>Not:</b> ${kullanıcı.not}</div>`;
+            }
         } else {
-            alert("Kullanıcı adı veya şifre hatalı!");
-            btn.disabled = false;
-            btn.innerText = "Sisteme Giriş Yap";
+            alert("Hatalı Giriş! Lütfen Google Tablo'daki güncel kullanıcı adı ve şifreyi kullanın.");
         }
-    } catch (e) {
-        console.error(e);
-        alert("Bağlantı hatası! Lütfen internetinizi kontrol edin.");
-        btn.disabled = false;
-        btn.innerText = "Sisteme Giriş Yap";
+    } catch (hata) {
+        alert("Bağlantı Hatası: Veriler Google'dan alınamadı.");
     }
-}
-
-async function forumYukle(kisiAdi) {
-    // forum.json klasöründe mevcut olmalı
-    const res = await fetch('./forum.json?v=' + Math.random());
-    const fData = await res.json();
-
-    document.getElementById('duyuru-alani').innerHTML = (fData.duyurular || []).map(m => 
-        `<div class="announcement">📢 ${m}</div>`).join('');
-
-    document.getElementById('forum-list').innerHTML = (fData.mesajlar || []).reverse().map(m => `
-        <div class="forum-item">
-            <strong>${m.kisi}</strong>
-            <div>${m.mesaj}</div>
-            <small>${m.tarih}</small>
-        </div>`).join('');
-
-    saatKontrolu(kisiAdi);
-}
-
-function saatKontrolu(kisi) {
-    const saat = new Date().getHours();
-    const alan = document.getElementById('mesaj-yazma-alani');
-    
-    // Mesaj yazma saatleri 09:00 - 22:00
-    if (saat >= 9 && saat < 22) {
-        alan.innerHTML = `
-            <textarea id="msg-text" placeholder="Yönetime veya site sakinlerine mesajınızı yazın..."></textarea>
-            <button class="btn btn-primary" onclick="mesajGonder('${kisi}')">Gönder</button>`;
-    } else {
-        alan.innerHTML = `<div class="time-badge">⚠️ Mesaj sistemi 22:00 - 09:00 saatleri arasında kapalıdır.</div>`;
-    }
-}
-
-function mesajGonder(kisi) {
-    const txt = document.getElementById('msg-text').value.trim();
-    if(txt.length < 5) {
-        alert("Lütfen en az 5 karakterlik bir mesaj yazın.");
-        return;
-    }
-    // Google Form ID'ni buraya ekleyebilirsin
-    const formUrl = `https://docs.google.com/forms/d/e/FORM_ID_BURAYA/viewform?entry.1=${encodeURIComponent(kisi)}&entry.2=${encodeURIComponent(txt)}`;
-    window.open(formUrl, '_blank');
 }
 </script>
 
