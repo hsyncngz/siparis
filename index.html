@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Site Bilgilendirme Paneli</title>
+    <title>Bilgilendirme Paneli</title>
     <style>
         :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
         .app-container { width: 100%; max-width: 450px; }
         .card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; background: var(--primary); color: white; transition: 0.2s; }
+        input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; background: var(--primary); color: white; }
         .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
         .info-value { color: #dc2626; font-weight: bold; }
         .note-box { background: #eff6ff; border-left: 4px solid var(--accent); padding: 12px; margin-top: 15px; border-radius: 4px; font-size: 0.9em; }
@@ -21,11 +21,11 @@
 
 <div class="app-container">
     <div id="login-screen" class="card">
-        <h2 style="text-align:center;">Site Sakini Girişi</h2>
-        <input type="text" id="username" placeholder="Kullanıcı Adı (Daire No)">
+        <h2 style="text-align:center; color: var(--primary);">Giriş Yapın</h2>
+        <input type="text" id="username" placeholder="Kullanıcı Adı">
         <input type="password" id="password" placeholder="Şifre">
-        <div id="loader" class="loading">Doğrulanıyor...</div>
-        <button id="loginBtn" class="btn" onclick="guvenliGiris()">Sorgula</button>
+        <div id="loader" class="loading">Sorgulanıyor...</div>
+        <button id="loginBtn" class="btn" onclick="girisSorgula()">Sorgula</button>
     </div>
 
     <div id="info-panel" style="display: none;">
@@ -39,75 +39,81 @@
                 <strong>Yönetim Notu:</strong><br><span id="val-not"></span>
             </div>
         </div>
-        <button class="btn" style="background:#64748b" onclick="location.reload()">Çıkış Yap</button>
+        <button class="btn" style="background:#64748b" onclick="location.reload()">Çıkış</button>
     </div>
 </div>
 
 <script>
-// Google Sheets Borç Tablosu Linkin (CSV formatında)
-const borcTabloUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
+// Google Sheets Borç Tablosu Linki
+const tabloUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
 
-async function guvenliGiris() {
+async function girisSorgula() {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
     const loader = document.getElementById('loader');
+    const btn = document.getElementById('loginBtn');
 
     if (!u || !p) return alert("Lütfen alanları doldurun.");
 
+    btn.style.display = "none";
     loader.style.display = "block";
 
     try {
-        // 1. ADIM: GitHub'daki sifreler.json dosyasından şifreleri çek
-        const sifreResp = await fetch('./sifreler.json?v=' + Date.now());
-        const sifreData = await sifreResp.json();
+        // 1. Şifreleri çek
+        const sResp = await fetch('./sifreler.json?t=' + Date.now());
+        if (!sResp.ok) throw new Error();
+        const sData = await sResp.json();
         
-        // Şifre kontrolü
-        const hesap = sifreData.hesaplar.find(h => h.username === u && h.password === p);
+        // 2. Kullanıcıyı bul
+        const hesap = sData.hesaplar.find(h => h.username === u && h.password === p);
 
-        if (hesap) {
-            // 2. ADIM: Şifre doğruysa Google Sheets'ten borç bilgilerini çek
-            const borcResp = await fetch(borcTabloUrl + "&t=" + Date.now());
-            const csvText = await borcResp.text();
-            
-            const rows = csvText.split(/\r?\n/).filter(r => r.trim() !== '');
-            const sep = rows[0].includes(';') ? ';' : ',';
-            const head = rows[0].split(sep).map(h => h.trim());
-            
-            const borclar = rows.slice(1).map(row => {
-                const cols = row.split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
-                let item = {};
-                head.forEach((h, i) => item[h] = cols[i] || "");
-                return item;
-            });
+        if (!hesap) {
+            alert("Hatalı Giriş!");
+            resetUI();
+            return;
+        }
 
-            // Borç tablosunda kullanıcıyı bul
-            const borcInfo = borclar.find(b => b.username === u);
+        // 3. Şifre doğruysa borçları çek
+        const bResp = await fetch(tabloUrl + "&t=" + Date.now());
+        const csv = await bResp.text();
+        const rows = csv.split(/\r?\n/).filter(r => r.trim() !== '');
+        const sep = rows[0].includes(';') ? ';' : ',';
+        const head = rows[0].split(sep).map(h => h.trim());
+        
+        const borclar = rows.slice(1).map(row => {
+            const cols = row.split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
+            let item = {};
+            head.forEach((h, i) => item[h] = cols[i] || "");
+            return item;
+        });
 
-            if (borcInfo) {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('info-panel').style.display = 'block';
-                
-                document.getElementById('display-name').innerText = "Sn. " + borcInfo.sahibi;
-                document.getElementById('val-no').innerText = borcInfo.daireNo;
-                document.getElementById('val-aidat').innerText = borcInfo.aidatBorcu + " TL";
-                document.getElementById('val-yakit').innerText = borcInfo.yakitBorcu + " TL";
-                document.getElementById('diger').innerText = borcInfo.digerBorc + " TL";
-                
-                if(borcInfo.not) {
-                    document.getElementById('note-box').style.display = "block";
-                    document.getElementById('val-not').innerText = borcInfo.not;
-                }
-            } else {
-                alert("Şifre doğru ancak borç tablosunda bu kullanıcı adı bulunamadı.");
+        const info = borclar.find(b => b.username === u);
+
+        if (info) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('info-panel').style.display = 'block';
+            document.getElementById('display-name').innerText = "Sn. " + info.sahibi;
+            document.getElementById('val-no').innerText = info.daireNo;
+            document.getElementById('val-aidat').innerText = info.aidatBorcu + " TL";
+            document.getElementById('val-yakit').innerText = info.yakitBorcu + " TL";
+            document.getElementById('diger').innerText = info.digerBorc + " TL";
+            if(info.not) {
+                document.getElementById('note-box').style.display = "block";
+                document.getElementById('val-not').innerText = info.not;
             }
         } else {
-            alert("Kullanıcı adı veya şifre hatalı!");
+            alert("Hatalı Giriş!");
+            resetUI();
         }
     } catch (e) {
-        alert("Bağlantı hatası! sifreler.json dosyasını kontrol edin.");
-    } finally {
-        loader.style.display = "none";
+        alert("Hatalı Giriş!"); // Güvenlik için dosya ismi yerine genel hata
+        resetUI();
     }
+}
+
+function resetUI() {
+    document.getElementById('loader').style.display = "none";
+    document.getElementById('loginBtn').style.display = "block";
 }
 </script>
 </body>
