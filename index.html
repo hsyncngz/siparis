@@ -2,145 +2,111 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sakin Bilgilendirme Sistemi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Site Bilgilendirme Paneli</title>
     <style>
-        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f1f5f9; --card: #ffffff; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: #1e293b; margin: 0; padding: 0; display: flex; justify-content: center; }
-        .app-container { width: 100%; max-width: 480px; min-height: 100vh; padding: 20px; box-sizing: border-box; }
-        
-        /* Kart Tasarımı */
-        .card { background: var(--card); border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.03); }
-        
-        /* Giriş Ekranı */
-        .login-header { text-align: center; margin-bottom: 30px; }
-        .login-header h2 { margin: 0; color: var(--primary); font-size: 24px; }
-        .login-header p { color: #64748b; font-size: 14px; margin-top: 8px; }
-        
-        input { width: 100%; padding: 15px; margin: 12px 0; border: 2px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; transition: border-color 0.2s; }
-        input:focus { border-color: var(--accent); }
-        
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 16px; transition: 0.3s; }
-        .btn-primary { background: var(--primary); color: white; margin-top: 10px; }
-        .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
-
-        /* Bilgi Paneli */
-        .welcome-section { text-align: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 20px; }
-        .welcome-section h3 { margin: 0; color: var(--primary); font-size: 20px; }
-        
-        .info-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f8fafc; }
-        .info-row:last-child { border-bottom: none; }
-        .info-label { font-weight: 500; color: #64748b; }
-        .info-value { font-weight: 700; color: #ef4444; font-size: 18px; }
-        
-        .note-box { background: #f0f9ff; border-radius: 12px; padding: 15px; margin-top: 20px; border-left: 4px solid var(--accent); }
-        .note-box h4 { margin: 0 0 5px 0; font-size: 14px; color: var(--accent); text-transform: uppercase; }
-        .note-box p { margin: 0; font-size: 15px; line-height: 1.5; color: #334155; }
-
-        .loading { display: none; text-align: center; color: var(--accent); font-weight: 600; margin: 10px 0; }
+        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 450px; }
+        .card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; background: var(--primary); color: white; transition: 0.2s; }
+        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+        .info-value { color: #dc2626; font-weight: bold; }
+        .note-box { background: #eff6ff; border-left: 4px solid var(--accent); padding: 12px; margin-top: 15px; border-radius: 4px; font-size: 0.9em; }
+        .loading { text-align: center; color: var(--accent); display: none; margin-bottom: 10px; font-weight: 500; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <div id="login-screen" class="card">
-        <div class="login-header">
-            <h2>Site Sakini Paneli</h2>
-            <p>Bilgilerinize ulaşmak için giriş yapın</p>
-        </div>
-        <input type="text" id="username" placeholder="Kullanıcı Adı" autocomplete="off">
+        <h2 style="text-align:center;">Site Sakini Girişi</h2>
+        <input type="text" id="username" placeholder="Kullanıcı Adı (Daire No)">
         <input type="password" id="password" placeholder="Şifre">
-        <div id="loader" class="loading">Veriler güncelleniyor...</div>
-        <button id="loginBtn" class="btn btn-primary" onclick="verileriCekVeGirisYap()">Sorgula</button>
+        <div id="loader" class="loading">Doğrulanıyor...</div>
+        <button id="loginBtn" class="btn" onclick="guvenliGiris()">Sorgula</button>
     </div>
 
     <div id="info-panel" style="display: none;">
         <div class="card">
-            <div class="welcome-section">
-                <h3 id="display-name">Hoş Geldiniz</h3>
-            </div>
-            
-            <div class="info-row">
-                <span class="info-label">Aidat Borcu</span>
-                <span id="val-aidat" class="info-value">0 TL</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Yakıt Borcu</span>
-                <span id="val-yakit" class="info-value">0 TL</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Diğer Borçlar</span>
-                <span id="val-diger" class="info-value">0 TL</span>
-            </div>
-
-            <div id="note-container" class="note-box" style="display: none;">
-                <h4>Yönetimden Mesaj</h4>
-                <p id="val-not"></p>
+            <h3 id="display-name" style="margin-top:0; text-align:center;"></h3>
+            <div class="info-row"><span>Daire No</span><span id="val-no" style="color:#1e293b"></span></div>
+            <div class="info-row"><span>Aidat Borcu</span><span id="val-aidat" class="info-value"></span></div>
+            <div class="info-row"><span>Yakıt Borcu</span><span id="val-yakit" class="info-value"></span></div>
+            <div class="info-row"><span>Diğer Borçlar</span><span id="val-diger" class="info-value"></span></div>
+            <div id="note-box" class="note-box" style="display: none;">
+                <strong>Yönetim Notu:</strong><br><span id="val-not"></span>
             </div>
         </div>
-
-        <button class="btn" style="background:#e2e8f0; color:#475569;" onclick="location.reload()">Güvenli Çıkış</button>
+        <button class="btn" style="background:#64748b" onclick="location.reload()">Çıkış Yap</button>
     </div>
 </div>
 
 <script>
-const gSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
+// Google Sheets Borç Tablosu Linkin (CSV formatında)
+const borcTabloUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
 
-async function verileriCekVeGirisYap() {
+async function guvenliGiris() {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
     const loader = document.getElementById('loader');
-    const btn = document.getElementById('loginBtn');
 
-    if (!u || !p) {
-        alert("Lütfen tüm alanları doldurun.");
-        return;
-    }
+    if (!u || !p) return alert("Lütfen alanları doldurun.");
 
     loader.style.display = "block";
-    btn.style.display = "none";
 
     try {
-        // Doğrudan Google Sheets linkine gider, cache engellemek için zaman damgası ekler
-        const resp = await fetch(gSheetUrl + "&t=" + Date.now());
-        const csv = await resp.text();
+        // 1. ADIM: GitHub'daki sifreler.json dosyasından şifreleri çek
+        const sifreResp = await fetch('./sifreler.json?v=' + Date.now());
+        const sifreData = await sifreResp.json();
         
-        const rows = csv.split(/\r?\n/).filter(r => r.trim() !== '');
-        const sep = rows[0].includes(';') ? ';' : ',';
-        const head = rows[0].split(sep).map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
-        
-        const data = rows.slice(1).map(row => {
-            const cols = row.split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
-            let item = {};
-            head.forEach((h, i) => item[h] = cols[i] || "");
-            return item;
-        });
+        // Şifre kontrolü
+        const hesap = sifreData.hesaplar.find(h => h.username === u && h.password === p);
 
-        // Eşleşme Kontrolü
-        const findUser = data.find(d => String(d.username) === u && String(d.password) === p);
+        if (hesap) {
+            // 2. ADIM: Şifre doğruysa Google Sheets'ten borç bilgilerini çek
+            const borcResp = await fetch(borcTabloUrl + "&t=" + Date.now());
+            const csvText = await borcResp.text();
+            
+            const rows = csvText.split(/\r?\n/).filter(r => r.trim() !== '');
+            const sep = rows[0].includes(';') ? ';' : ',';
+            const head = rows[0].split(sep).map(h => h.trim());
+            
+            const borclar = rows.slice(1).map(row => {
+                const cols = row.split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
+                let item = {};
+                head.forEach((h, i) => item[h] = cols[i] || "");
+                return item;
+            });
 
-        if (findUser) {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('info-panel').style.display = 'block';
-            
-            document.getElementById('display-name').innerText = "Sn. " + (findUser.sahibi || findUser.username);
-            document.getElementById('val-aidat').innerText = (findUser.aidatborcu || "0") + " TL";
-            document.getElementById('val-yakit').innerText = (findUser.yakitborcu || "0") + " TL";
-            document.getElementById('val-diger').innerText = (findUser.digerborc || "0") + " TL";
-            
-            if(findUser.not && findUser.not !== "") {
-                document.getElementById('note-container').style.display = "block";
-                document.getElementById('val-not').innerText = findUser.not;
+            // Borç tablosunda kullanıcıyı bul
+            const borcInfo = borclar.find(b => b.username === u);
+
+            if (borcInfo) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('info-panel').style.display = 'block';
+                
+                document.getElementById('display-name').innerText = "Sn. " + borcInfo.sahibi;
+                document.getElementById('val-no').innerText = borcInfo.daireNo;
+                document.getElementById('val-aidat').innerText = borcInfo.aidatBorcu + " TL";
+                document.getElementById('val-yakit').innerText = borcInfo.yakitBorcu + " TL";
+                document.getElementById('diger').innerText = borcInfo.digerBorc + " TL";
+                
+                if(borcInfo.not) {
+                    document.getElementById('note-box').style.display = "block";
+                    document.getElementById('val-not').innerText = borcInfo.not;
+                }
+            } else {
+                alert("Şifre doğru ancak borç tablosunda bu kullanıcı adı bulunamadı.");
             }
         } else {
-            alert("Hatalı kullanıcı adı veya şifre!");
-            loader.style.display = "none";
-            btn.style.display = "block";
+            alert("Kullanıcı adı veya şifre hatalı!");
         }
-    } catch (err) {
-        alert("Sistem şu an meşgul, lütfen az sonra tekrar deneyin.");
+    } catch (e) {
+        alert("Bağlantı hatası! sifreler.json dosyasını kontrol edin.");
+    } finally {
         loader.style.display = "none";
-        btn.style.display = "block";
     }
 }
 </script>
