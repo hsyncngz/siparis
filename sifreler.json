@@ -1,6 +1,7 @@
 {
   "hesaplar": [
     { "username": "daire1", "password": "123" },
-    { "username": "daire2", "password": "456" }
+    { "username": "daire2", "password": "456" },
+    { "username": "huseyin", "password": "123" }
   ]
 }
