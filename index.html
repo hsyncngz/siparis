@@ -2,102 +2,93 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Site Bilgi Sistemi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Yönetim Paneli</title>
     <style>
-        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .app-container { width: 100%; max-width: 450px; }
-        .card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h2 { text-align: center; color: var(--primary); margin-top: 0; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; background: var(--primary); color: white; transition: 0.2s; }
-        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
-        .info-label { color: #64748b; font-size: 14px; }
-        .info-value { color: #1e293b; font-weight: 700; font-size: 16px; }
-        .debt { color: #dc2626; }
-        #loader { text-align: center; color: var(--accent); display: none; margin-bottom: 15px; font-weight: bold; }
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 10px; width: 100%; max-width: 400px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .res-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 8px 0; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div id="login-screen" class="card">
+<div class="card">
+    <div id="login-box">
         <h2>Sakin Girişi</h2>
-        <input type="text" id="username" placeholder="Kullanıcı Adı">
-        <input type="password" id="password" placeholder="Şifre">
-        <div id="loader">Bilgiler Sorgulanıyor...</div>
-        <button id="loginBtn" class="btn" onclick="anaGirisFonksiyonu()">Sorgula</button>
+        <input type="text" id="u" placeholder="Kullanıcı Adı">
+        <input type="password" id="p" placeholder="Şifre">
+        <button class="btn" onclick="girisYap()">SORGULA</button>
     </div>
 
-    <div id="info-panel" style="display: none;">
-        <div class="card">
-            <h3 id="display-name" style="margin-top:0; text-align:center; color: var(--primary);"></h3>
-            <div class="info-row"><span class="info-label">Daire No</span><span id="val-no" class="info-value"></span></div>
-            <div class="info-row"><span class="info-label">Aidat Borcu</span><span id="val-aidat" class="info-value debt"></span></div>
-            <div class="info-row"><span class="info-label">Yakıt Borcu</span><span id="val-yakit" class="info-value debt"></span></div>
-            <div class="info-row"><span class="info-label">Diğer Borçlar</span><span id="val-diger" class="info-value debt"></span></div>
-        </div>
-        <button class="btn" style="background:#64748b" onclick="location.reload()">Güvenli Çıkış</button>
+    <div id="result-box" style="display:none">
+        <h3 id="isim"></h3>
+        <div class="res-row"><span>Daire:</span> <b id="dNo"></b></div>
+        <div class="res-row"><span>Aidat:</span> <b id="aidat" style="color:red"></b></div>
+        <div class="res-row"><span>Yakıt:</span> <b id="yakit" style="color:red"></b></div>
+        <div class="res-row"><span>Diğer:</span> <b id="diger" style="color:red"></b></div>
+        <button class="btn" style="margin-top:15px; background:#666" onclick="location.reload()">Çıkış</button>
     </div>
 </div>
 
 <script>
-// Google Sheets CSV Linkiniz
-const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
+// SENİN GOOGLE SHEETS CSV LİNKİN
+const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
 
-async function anaGirisFonksiyonu() {
-    const uIn = document.getElementById('username').value.trim();
-    const pIn = document.getElementById('password').value.trim();
-    const loader = document.getElementById('loader');
-    const btn = document.getElementById('loginBtn');
+async function girisYap() {
+    const user = document.getElementById('u').value.trim();
+    const pass = document.getElementById('p').value.trim();
 
-    if (!uIn || !pIn) return alert("Lütfen alanları doldurun.");
-
-    btn.style.display = "none";
-    loader.style.display = "block";
+    if(!user || !pass) return alert("Boş bırakmayın");
 
     try {
-        // 1. Şifreleri JSON'dan çek ve doğrula
-        const sResp = await fetch('./sifreler.json?t=' + Date.now());
+        // 1. Şifreleri çek
+        const sResp = await fetch('./sifreler.json?v=' + Math.random());
         const sData = await sResp.json();
-        const hesap = sData.hesaplar.find(h => h.username === uIn && String(h.password) === pIn);
+        const hesap = sData.hesaplar.find(h => h.username === user && String(h.password) === pass);
 
-        if (!hesap) {
-            alert("Kullanıcı adı veya şifre hatalı!");
-            loader.style.display = "none";
-            btn.style.display = "block";
-            return;
+        if(!hesap) {
+            return alert("Kullanıcı adı veya şifre yanlış!");
         }
 
-        // 2. Şifre doğruysa Google Sheets'ten borçları çek
-        const bResp = await fetch(googleSheetUrl + "&t=" + Date.now());
-        const csv = await bResp.text();
+        // 2. Tabloyu çek
+        const tResp = await fetch(csvUrl + "&v=" + Math.random());
+        const csvText = await tResp.text();
         
-        // CSV Parçalama (Virgül veya Noktalı Virgül ayrımı)
-        const rows = csv.split(/\r?\n/).filter(r => r.trim() !== '');
-        const sep = rows[0].includes(';') ? ';' : ',';
-        const headers = rows[0].split(sep).map(h => h.trim());
+        // CSV PARÇALAMA (Virgül veya Noktalı Virgül otomatik seçer)
+        const rows = csvText.split(/\r?\n/).filter(r => r.trim() !== "");
+        const ayrac = rows[0].includes(";") ? ";" : ",";
+        const basliklar = rows[0].split(ayrac).map(b => b.trim());
         
         const veriler = rows.slice(1).map(row => {
-            const cols = row.split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
-            let item = {};
-            headers.forEach((h, i) => item[h] = cols[i] || "");
-            return item;
+            const sutunlar = row.split(ayrac).map(s => s.trim().replace(/"/g, ""));
+            let obj = {};
+            basliklar.forEach((b, i) => obj[b] = sutunlar[i]);
+            return obj;
         });
 
-        // JSON'daki 'daireNo' ile Tablo'daki 'daireNo'yu eşleştir
-        const detay = veriler.find(d => String(d.daireNo) === String(hesap.daireNo));
+        // 3. Eşleştir
+        const daire = veriler.find(d => String(d.daireNo) === String(hesap.daireNo));
 
-        if (detay) {
-            document.getElementById('display-name').innerText = "Sn. " + (detay.sahibi || "Sakin");
-            document.getElementById('val-no').innerText = detay.daireNo;
-            document.getElementById('val-aidat').innerText = (detay.aidatBorcu || "0") + " TL";
-            document.getElementById('val-yakit').innerText = (detay.yakitBorcu || "0") + " TL";
-            document.getElementById('val-diger').innerText = (detay.digerBorc || "0") + " TL";
-
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('info-panel').style.display = 'block';
+        if(daire) {
+            document.getElementById('isim').innerText = "Sn. " + (daire.sahibi || "Sakin");
+            document.getElementById('dNo').innerText = daire.daireNo;
+            document.getElementById('aidat').innerText = (daire.aidatBorcu || "0") + " TL";
+            document.getElementById('yakit').innerText = (daire.yakitBorcu || "0") + " TL";
+            document.getElementById('diger').innerText = (daire.digerBorc || "0") + " TL";
+            
+            document.getElementById('login-box').style.display = "none";
+            document.getElementById('result-box').style.display = "block";
         } else {
-            alert("Daire bilg
-                  
+            alert("Şifre doğru ama Tabloda bu daireNo ( " + hesap.daireNo + " ) bulunamadı!");
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Sistem hatası! GitHub'daki sifreler.json dosyanızın veya Sheets linkinizin doğru olduğundan emin olun.");
+    }
+}
+</script>
+</body>
+</html>
