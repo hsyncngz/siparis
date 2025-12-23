@@ -20,6 +20,15 @@
         .debt { color: #dc2626; }
         .note-box { background: #f0f9ff; border-left: 4px solid var(--accent); padding: 15px; margin-top: 15px; border-radius: 8px; font-size: 0.95em; line-height: 1.5; }
         #loader { text-align: center; color: var(--accent); display: none; margin-bottom: 15px; font-weight: bold; }
+        
+        /* Yeni Duyuru Stilleri */
+        .announcement-section { margin-top: 10px; }
+        .announcement-title { font-size: 18px; color: var(--primary); margin-bottom: 10px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .announcement-item { background: #fff; border-left: 4px solid var(--accent); padding: 12px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .announcement-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .announcement-name { font-weight: bold; color: var(--primary); font-size: 14px; }
+        .announcement-date { font-size: 12px; color: #94a3b8; }
+        .announcement-body { font-size: 13px; color: #475569; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -44,7 +53,14 @@
                 <strong style="color: var(--accent)">Yönetici Notu:</strong><br><span id="val-not"></span>
             </div>
         </div>
-        <button class="btn" style="background:#64748b" onclick="location.reload()">Güvenli Çıkış</button>
+
+        <div class="announcement-section">
+            <div class="announcement-title">📢 Güncel Duyurular</div>
+            <div id="announcement-list">
+                </div>
+        </div>
+
+        <button class="btn" style="background:#64748b; margin-top: 10px;" onclick="location.reload()">Güvenli Çıkış</button>
     </div>
 </div>
 
@@ -52,11 +68,35 @@
 const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
 const logScriptUrl = "https://script.google.com/macros/s/AKfycbxI9ocolCXT8pqXK85qkuS7KWBf_lHjlcwTBa-FWCokHYQiq7BAupxTkSZq-qrTg5ao/exec";
 
-// Log Yazma Fonksiyonu (Geliştirilmiş)
+// Duyuruları JSON dosyasından çeken yeni fonksiyon
+async function duyurulariYukle() {
+    try {
+        const response = await fetch('./duyurular.json?t=' + Date.now());
+        const data = await response.json();
+        const listContainer = document.getElementById('announcement-list');
+        listContainer.innerHTML = ''; // Önce temizle
+
+        data.duyurular.forEach(duyuru => {
+            const item = `
+                <div class="announcement-item">
+                    <div class="announcement-header">
+                        <span class="announcement-name">${duyuru.baslik}</span>
+                        <span class="announcement-date">${duyuru.tarih}</span>
+                    </div>
+                    <div class="announcement-body">${duyuru.icerik}</div>
+                </div>
+            `;
+            listContainer.innerHTML += item;
+        });
+    } catch (e) {
+        console.error("Duyurular yüklenemedi:", e);
+        document.getElementById('announcement-list').innerHTML = '<p style="font-size:12px; color:gray;">Duyurular şu an yüklenemiyor.</p>';
+    }
+}
+
 async function logYaz(dNo, durum) {
     if (!dNo) return;
     try {
-        // Form verisi olarak göndermek Google Script için daha güvenlidir
         await fetch(logScriptUrl, {
             method: 'POST',
             mode: 'no-cors', 
@@ -105,9 +145,9 @@ async function sistemeGirisYap() {
         const detay = veriler.find(d => String(d.daireNo) === String(hesap.daireNo));
 
         if (detay) {
-            // Başarılı girişi logla
             logYaz(hesap.daireNo, "basarili");
 
+            // BİLGİLERİ DOLDUR
             document.getElementById('display-name').innerText = "Sn. " + detay.sahibi;
             document.getElementById('val-no').innerText = detay.daireNo;
             document.getElementById('val-aidat').innerText = (detay.aidatBorcu || "0") + " TL";
@@ -118,6 +158,9 @@ async function sistemeGirisYap() {
                 document.getElementById('note-box').style.display = "block";
                 document.getElementById('val-not').innerText = detay.not;
             }
+
+            // DUYURULARI YÜKLE
+            await duyurulariYukle();
 
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('info-panel').style.display = 'block';
