@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Site Bilgi Paneli</title>
+    <title>Site Sakini Bilgi Paneli</title>
     <style>
         :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .app-container { width: 100%; max-width: 450px; }
+        .app-container { width: 100%; max-width: 450px; width: 100%; }
         .card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; background: var(--primary); color: white; transition: 0.2s; }
-        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+        h2 { text-align: center; color: var(--primary); margin-top: 0; font-size: 22px; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.2s; }
+        input:focus { border-color: var(--accent); }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; background: var(--primary); color: white; transition: 0.3s; }
+        .btn:active { transform: scale(0.98); }
+        .info-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f1f5f9; }
         .info-label { color: #64748b; font-size: 14px; }
         .info-value { color: #1e293b; font-weight: 700; font-size: 16px; }
         .debt { color: #dc2626; }
-        .note-box { background: #eff6ff; border-left: 4px solid var(--accent); padding: 12px; margin-top: 15px; border-radius: 8px; font-size: 0.95em; }
+        .note-box { background: #f0f9ff; border-left: 4px solid var(--accent); padding: 15px; margin-top: 15px; border-radius: 8px; font-size: 0.95em; line-height: 1.5; }
         #loader { text-align: center; color: var(--accent); display: none; margin-bottom: 15px; font-weight: bold; }
     </style>
 </head>
@@ -23,22 +26,37 @@
 
 <div class="app-container">
     <div id="login-screen" class="card">
-        <h2 style="text-align:center; color: var(--primary); margin-top:0;">Sakin Girişi</h2>
-        <input type="text" id="username" placeholder="Kullanıcı Adı">
-        <input type="password" id="password" placeholder="Şifre">
-        <div id="loader">İşlem Yapılıyor...</div>
-        <button id="loginBtn" class="btn" onclick="anaGirisFonksiyonu()">Giriş Yap</button>
+        <h2>Sakin Girişi</h2>
+        <input type="text" id="username" placeholder="Kullanıcı Adı" autocomplete="username">
+        <input type="password" id="password" placeholder="Şifre" autocomplete="current-password">
+        <div id="loader">Doğrulanıyor...</div>
+        <button id="loginBtn" class="btn" onclick="sistemeGirisYap()">Sorgula</button>
     </div>
 
     <div id="info-panel" style="display: none;">
         <div class="card">
             <h3 id="display-name" style="margin-top:0; text-align:center; color: var(--primary);"></h3>
-            <div class="info-row"><span class="info-label">Daire No</span><span id="val-no" class="info-value"></span></div>
-            <div class="info-row"><span class="info-label">Aidat Borcu</span><span id="val-aidat" class="info-value debt"></span></div>
-            <div class="info-row"><span class="info-label">Yakıt Borcu</span><span id="val-yakit" class="info-value debt"></span></div>
-            <div class="info-row"><span class="info-label">Diğer Borçlar</span><span id="val-diger" class="info-value debt"></span></div>
+            
+            <div class="info-row">
+                <span class="info-label">Daire Numarası</span>
+                <span id="val-no" class="info-value"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Aidat Borcu</span>
+                <span id="val-aidat" class="info-value debt"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Yakıt Borcu</span>
+                <span id="val-yakit" class="info-value debt"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Diğer Borçlar</span>
+                <span id="val-diger" class="info-value debt"></span>
+            </div>
+
             <div id="note-box" class="note-box" style="display: none;">
-                <strong style="color: var(--accent)">Yönetici Notu:</strong><br><span id="val-not"></span>
+                <strong style="color: var(--accent)">Yönetici Notu:</strong><br>
+                <span id="val-not" style="display: block; margin-top: 5px; color: #334155;"></span>
             </div>
         </div>
         <button class="btn" style="background:#64748b" onclick="location.reload()">Güvenli Çıkış</button>
@@ -46,44 +64,52 @@
 </div>
 
 <script>
-const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
-const scriptUrl = "https://script.google.com/macros/s/AKfycbxnBiPyJznbKy587Qe2UfNoSJ0_3q6WznEdaOlv67mfr8RPTymOp_Rye89Pw-f1Snk2/exec";
+// Google Veri Kaynakları
+const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
+const logScriptUrl = "https://script.google.com/macros/s/AKfycbxI9ocolCXT8pqXK85qkuS7KWBf_lHjlcwTBa-FWCokHYQiq7BAupxTkSZq-qrTg5ao/exec";
 
-async function tabloyaYaz(daireNo, durum) {
+// Google Sheets'e Yazma Fonksiyonu
+async function logYaz(dNo, durum) {
     try {
-        await fetch(scriptUrl, {
+        await fetch(logScriptUrl, {
             method: 'POST',
             mode: 'no-cors',
+            cache: 'no-cache',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ daireNo: String(daireNo), durum: durum })
+            body: JSON.stringify({ daireNo: String(dNo), durum: durum })
         });
-    } catch (e) { console.log("Log hatası"); }
+    } catch (e) { console.warn("Log iletilemedi."); }
 }
 
-async function anaGirisFonksiyonu() {
-    const uIn = document.getElementById('username').value.trim();
-    const pIn = document.getElementById('password').value.trim();
+async function sistemeGirisYap() {
+    const userIn = document.getElementById('username').value.trim();
+    const passIn = document.getElementById('password').value.trim();
     const loader = document.getElementById('loader');
     const btn = document.getElementById('loginBtn');
 
-    if (!uIn || !pIn) return alert("Alanları doldurun.");
+    if (!userIn || !passIn) {
+        alert("Lütfen tüm alanları doldurun.");
+        return;
+    }
 
     btn.style.display = "none";
     loader.style.display = "block";
 
     try {
+        // 1. Şifre Doğrulama (GitHub sifreler.json)
         const sResp = await fetch('./sifreler.json?t=' + Date.now());
         const sData = await sResp.json();
-        const hesap = sData.hesaplar.find(h => h.username === uIn && String(h.password) === pIn);
+        const hesap = sData.hesaplar.find(h => h.username === userIn && String(h.password) === passIn);
 
         if (!hesap) {
-            // Başarısız giriş kaydı (Kullanıcı adı biliniyorsa veya girilen değerle)
-            tabloyaYaz(uIn, "basarisiz");
-            throw new Error();
+            await logYaz(userIn, "basarisiz"); // Hatalı girişi logla
+            throw new Error("GirisHatali");
         }
 
-        const bResp = await fetch(googleSheetUrl + "&t=" + Date.now());
+        // 2. Borç Bilgilerini Çekme (Google Sheets CSV)
+        const bResp = await fetch(csvUrl + "&t=" + Date.now());
         const csv = await bResp.text();
+        
         const rows = csv.split(/\r?\n/).filter(r => r.trim() !== '');
         const sep = rows[0].includes(';') ? ';' : ',';
         const headers = rows[0].split(sep).map(h => h.trim());
@@ -95,29 +121,35 @@ async function anaGirisFonksiyonu() {
             return item;
         });
 
+        // sifreler.json'daki 'daireNo' ile Sheets'teki 'daireNo' eşleştirmesi
         const detay = veriler.find(d => String(d.daireNo) === String(hesap.daireNo));
 
         if (detay) {
-            // Başarılı giriş kaydı ve sayaç artırma
-            tabloyaYaz(hesap.daireNo, "basarili");
+            // Başarılı girişi logla
+            await logYaz(hesap.daireNo, "basarili");
 
+            // Arayüzü Doldur
             document.getElementById('display-name').innerText = "Sn. " + detay.sahibi;
             document.getElementById('val-no').innerText = detay.daireNo;
             document.getElementById('val-aidat').innerText = (detay.aidatBorcu || "0") + " TL";
             document.getElementById('val-yakit').innerText = (detay.yakitBorcu || "0") + " TL";
             document.getElementById('val-diger').innerText = (detay.digerBorc || "0") + " TL";
-            if(detay.not) {
+            
+            if(detay.not && detay.not !== "") {
                 document.getElementById('note-box').style.display = "block";
                 document.getElementById('val-not').innerText = detay.not;
             }
+
+            // Paneli Göster
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('info-panel').style.display = 'block';
         } else {
-            tabloyaYaz(hesap.daireNo, "basarisiz");
-            throw new Error();
+            await logYaz(hesap.daireNo, "basarisiz");
+            throw new Error("DaireBulunamadi");
         }
+
     } catch (e) {
-        alert("Hatalı Giriş!");
+        alert("Hatalı kullanıcı adı veya şifre!");
         loader.style.display = "none";
         btn.style.display = "block";
     }
