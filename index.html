@@ -26,34 +26,19 @@
         <h2 style="text-align:center; color: var(--primary); margin-top:0;">Sakin Girişi</h2>
         <input type="text" id="username" placeholder="Kullanıcı Adı">
         <input type="password" id="password" placeholder="Şifre">
-        <div id="loader">Veriler Getiriliyor...</div>
-        <button id="loginBtn" class="btn" onclick="baglanVeGetir()">Giriş Yap</button>
+        <div id="loader">İşlem Yapılıyor...</div>
+        <button id="loginBtn" class="btn" onclick="anaGirisFonksiyonu()">Giriş Yap</button>
     </div>
 
     <div id="info-panel" style="display: none;">
         <div class="card">
             <h3 id="display-name" style="margin-top:0; text-align:center; color: var(--primary);"></h3>
-            
-            <div class="info-row">
-                <span class="info-label">Daire No</span>
-                <span id="val-no" class="info-value"></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Aidat Borcu</span>
-                <span id="val-aidat" class="info-value debt"></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Yakıt Borcu</span>
-                <span id="val-yakit" class="info-value debt"></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Diğer Borçlar</span>
-                <span id="val-diger" class="info-value debt"></span>
-            </div>
-
+            <div class="info-row"><span class="info-label">Daire No</span><span id="val-no" class="info-value"></span></div>
+            <div class="info-row"><span class="info-label">Aidat Borcu</span><span id="val-aidat" class="info-value debt"></span></div>
+            <div class="info-row"><span class="info-label">Yakıt Borcu</span><span id="val-yakit" class="info-value debt"></span></div>
+            <div class="info-row"><span class="info-label">Diğer Borçlar</span><span id="val-diger" class="info-value debt"></span></div>
             <div id="note-box" class="note-box" style="display: none;">
-                <strong style="color: var(--accent)">Yönetici Notu:</strong><br>
-                <span id="val-not" style="display: block; margin-top: 5px;"></span>
+                <strong style="color: var(--accent)">Yönetici Notu:</strong><br><span id="val-not"></span>
             </div>
         </div>
         <button class="btn" style="background:#64748b" onclick="location.reload()">Güvenli Çıkış</button>
@@ -61,84 +46,81 @@
 </div>
 
 <script>
-// Google Sheets Borç Tablosu CSV Linki
 const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
+const scriptUrl = "https://script.google.com/macros/s/AKfycbxnBiPyJznbKy587Qe2UfNoSJ0_3q6WznEdaOlv67mfr8RPTymOp_Rye89Pw-f1Snk2/exec";
 
-async function baglanVeGetir() {
-    const userInput = document.getElementById('username').value.trim();
-    const passInput = document.getElementById('password').value.trim();
+async function tabloyaYaz(daireNo, durum) {
+    try {
+        await fetch(scriptUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ daireNo: String(daireNo), durum: durum })
+        });
+    } catch (e) { console.log("Log hatası"); }
+}
+
+async function anaGirisFonksiyonu() {
+    const uIn = document.getElementById('username').value.trim();
+    const pIn = document.getElementById('password').value.trim();
     const loader = document.getElementById('loader');
     const btn = document.getElementById('loginBtn');
 
-    if (!userInput || !passInput) {
-        alert("Lütfen tüm alanları doldurun.");
-        return;
-    }
+    if (!uIn || !pIn) return alert("Alanları doldurun.");
 
     btn.style.display = "none";
     loader.style.display = "block";
 
     try {
-        // 1. ADIM: sifreler.json üzerinden kimlik doğrulama
         const sResp = await fetch('./sifreler.json?t=' + Date.now());
-        if (!sResp.ok) throw new Error();
         const sData = await sResp.json();
-        
-        // Kullanıcı adı ve şifre eşleşmesini kontrol et
-        const hesap = sData.hesaplar.find(h => h.username === userInput && String(h.password) === passInput);
+        const hesap = sData.hesaplar.find(h => h.username === uIn && String(h.password) === pIn);
 
         if (!hesap) {
-            throw new Error("GirisHatali");
+            // Başarısız giriş kaydı (Kullanıcı adı biliniyorsa veya girilen değerle)
+            tabloyaYaz(uIn, "basarisiz");
+            throw new Error();
         }
 
-        // 2. ADIM: Şifre doğruysa Google Sheets'ten borçları çek
         const bResp = await fetch(googleSheetUrl + "&t=" + Date.now());
-        const csvText = await bResp.text();
-        
-        const rows = csvText.split(/\r?\n/).filter(r => r.trim() !== '');
+        const csv = await bResp.text();
+        const rows = csv.split(/\r?\n/).filter(r => r.trim() !== '');
         const sep = rows[0].includes(';') ? ';' : ',';
         const headers = rows[0].split(sep).map(h => h.trim());
         
-        const tabloVerileri = rows.slice(1).map(row => {
+        const veriler = rows.slice(1).map(row => {
             const cols = row.split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
             let item = {};
             headers.forEach((h, i) => item[h] = cols[i] || "");
             return item;
         });
 
-        // sifreler.json'daki 'daireNo' (örn: ga3) ile Sheets'teki 'daireNo'yu eşleştir
-        const daireDetay = tabloVerileri.find(d => String(d.daireNo) === String(hesap.daireNo));
+        const detay = veriler.find(d => String(d.daireNo) === String(hesap.daireNo));
 
-        if (daireDetay) {
-            // Arayüzü Güncelle
-            document.getElementById('display-name').innerText = "Sn. " + daireDetay.sahibi;
-            document.getElementById('val-no').innerText = daireDetay.daireNo;
-            document.getElementById('val-aidat').innerText = (daireDetay.aidatBorcu || "0") + " TL";
-            document.getElementById('val-yakit').innerText = (daireDetay.yakitBorcu || "0") + " TL";
-            document.getElementById('val-diger').innerText = (daireDetay.digerBorc || "0") + " TL";
-            
-            if(daireDetay.not && daireDetay.not !== "") {
+        if (detay) {
+            // Başarılı giriş kaydı ve sayaç artırma
+            tabloyaYaz(hesap.daireNo, "basarili");
+
+            document.getElementById('display-name').innerText = "Sn. " + detay.sahibi;
+            document.getElementById('val-no').innerText = detay.daireNo;
+            document.getElementById('val-aidat').innerText = (detay.aidatBorcu || "0") + " TL";
+            document.getElementById('val-yakit').innerText = (detay.yakitBorcu || "0") + " TL";
+            document.getElementById('val-diger').innerText = (detay.digerBorc || "0") + " TL";
+            if(detay.not) {
                 document.getElementById('note-box').style.display = "block";
-                document.getElementById('val-not').innerText = daireDetay.not;
+                document.getElementById('val-not').innerText = detay.not;
             }
-
-            // Ekran Geçişi
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('info-panel').style.display = 'block';
         } else {
-            alert("Hatalı Giriş!");
-            sifirla();
+            tabloyaYaz(hesap.daireNo, "basarisiz");
+            throw new Error();
         }
-
     } catch (e) {
         alert("Hatalı Giriş!");
-        sifirla();
+        loader.style.display = "none";
+        btn.style.display = "block";
     }
-}
-
-function sifirla() {
-    document.getElementById('loader').style.display = "none";
-    document.getElementById('loginBtn').style.display = "block";
 }
 </script>
 </body>
