@@ -1,107 +1,85 @@
-const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
-const scriptUrl = "https://script.google.com/macros/s/BURAYA_SCRIPT_URL_GELECEK/exec";
+// Google Sheets CSV Linkiniz
+const googleSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
 
-let aktifKullanici = null;
+async function anaGirisFonksiyonu() {
+    const uIn = document.getElementById('username').value.trim();
+    const pIn = document.getElementById('password').value.trim();
+    const loader = document.getElementById('loader');
+    const btn = document.getElementById('loginBtn');
 
-async function girisYap() {
-    console.log("Giriş denemesi başlatıldı...");
-    const uInp = document.getElementById('username').value.trim();
-    const pInp = document.getElementById('password').value.trim();
-
-    if (!uInp || !pInp) {
-        alert("Lütfen tüm alanları doldurun.");
+    // 1. Alan Kontrolü
+    if (!uIn || !pIn) {
+        alert("Lütfen kullanıcı adı ve şifrenizi giriniz.");
         return;
     }
 
+    // 2. Yükleniyor Durumu
+    btn.disabled = true;
+    btn.innerText = "Sorgulanıyor...";
+    loader.style.display = "block";
+
     try {
-        const response = await fetch(sheetUrl + "&cache=" + Math.random());
-        const text = await response.text();
+        // 3. Şifre Doğrulama (sifreler.json)
+        // t= parametresi tarayıcının eski şifreleri hatırlamasını (cache) engeller
+        const sResp = await fetch('./sifreler.json?t=' + Date.now());
+        if (!sResp.ok) throw new Error("Şifre dosyasına ulaşılamadı.");
         
-        const rows = text.split('\n').filter(row => row.trim() !== '');
-        const headers = rows[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-        
-        const daireler = rows.slice(1).map(row => {
-            const values = row.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-            let obj = {};
-            headers.forEach((header, i) => { obj[header] = values[i] || ""; });
-            return obj;
-        });
+        const sData = await sResp.json();
+        const hesap = sData.hesaplar.find(h => h.username === uIn && String(h.password) === pIn);
 
-        const user = daireler.find(d => d.username === uInp && d.password === pInp);
-
-        if (user) {
-            aktifKullanici = user; // Kullanıcıyı belleğe al
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-panel').style.display = 'block';
-            
-            document.getElementById('welcome-msg').innerText = `Sn. ${user.sahibi}`;
-            document.getElementById('aidat').innerText = (user.aidatBorcu || "0") + " TL";
-            document.getElementById('yakit').innerText = (user.yakitBorcu || "0") + " TL";
-            document.getElementById('diger').innerText = (user.digerBorc || "0") + " TL";
-            
-            // Duyuru ve Forumu Yükle
-            forumYukle(user.sahibi).catch(e => console.log("Forum hatası"));
-            
-            // Başarılı girişi logla
-            logGonder(user.daireNo, "basarili");
-        } else {
-            alert("Kullanıcı adı veya şifre yanlış!");
-            logGonder(uInp, "basarisiz");
+        if (!hesap) {
+            alert("Hatalı kullanıcı adı veya şifre!");
+            sistemiSifirla(btn, loader);
+            return;
         }
-    } catch (e) {
-        console.error("Hata:", e);
-        alert("Bağlantı hatası oluştu.");
-    }
-}
 
-// Google Sheets'e Arıza/Talep Gönderen Fonksiyon
-async function talepGonder() {
-    const konu = document.getElementById('talep-konu').value;
-    const mesaj = document.getElementById('talep-text').value.trim();
-
-    if (mesaj.length < 5) return alert("Lütfen daha detaylı bir açıklama yazın.");
-
-    try {
-        await fetch(scriptUrl, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({
-                islem: "talepKaydet",
-                daireNo: aktifKullanici.daireNo,
-                konu: konu,
-                mesaj: mesaj
-            })
+        // 4. Borç Bilgilerini Çekme (Google Sheets)
+        const bResp = await fetch(googleSheetUrl + "&t=" + Date.now());
+        if (!bResp.ok) throw new Error("Google Sheets verisine ulaşılamadı.");
+        
+        const csv = await bResp.text();
+        
+        // 5. CSV Parçalama Mantığı
+        const rows = csv.split(/\r?\n/).filter(r => r.trim() !== '');
+        const sep = rows[0].includes(';') ? ';' : ',';
+        const headers = rows[0].split(sep).map(h => h.trim());
+        
+        const veriler = rows.slice(1).map(row => {
+            const cols = row.split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
+            let item = {};
+            headers.forEach((h, i) => item[h] = cols[i] || "");
+            return item;
         });
-        alert("Talebiniz yönetime iletildi.");
-        document.getElementById('talep-text').value = "";
+
+        // 6. Daire Eşleştirme
+        const detay = veriler.find(d => String(d.daireNo) === String(hesap.daireNo));
+
+        if (detay) {
+            // Bilgileri Ekrana Yaz
+            document.getElementById('display-name').innerText = "Sn. " + (detay.sahibi || "Sakin");
+            document.getElementById('val-no').innerText = detay.daireNo;
+            document.getElementById('val-aidat').innerText = (detay.aidatBorcu || "0") + " TL";
+            document.getElementById('val-yakit').innerText = (detay.yakitBorcu || "0") + " TL";
+            document.getElementById('val-diger').innerText = (detay.digerBorc || "0") + " TL";
+
+            // Ekran Değiştir
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('info-panel').style.display = 'block';
+        } else {
+            alert("Dairenize ait borç kaydı bulunamadı. Lütfen yöneticiye danışın.");
+            sistemiSifirla(btn, loader);
+        }
+
     } catch (e) {
-        alert("Gönderilemedi, lütfen tekrar deneyin.");
+        console.error("Sistem Hatası:", e);
+        alert("Bağlantı hatası! Lütfen internetinizi kontrol edin veya daha sonra tekrar deneyin.");
+        sistemiSifirla(btn, loader);
     }
 }
 
-async function logGonder(dNo, durum) {
-    fetch(scriptUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({ daireNo: dNo, durum: durum })
-    });
-}
-
-async function forumYukle(kisiAdi) {
-    const res = await fetch('./forum.json?v=' + Math.random());
-    const fData = await res.json();
-    document.getElementById('duyuru-alani').innerHTML = fData.duyurular.map(m => `<div class="announcement">📢 ${m}</div>`).join('');
-    document.getElementById('forum-list').innerHTML = fData.mesajlar.reverse().map(m => `<div class="forum-item"><strong>${m.kisi}</strong>: ${m.mesaj}<small>${m.tarih}</small></div>`).join('');
-    saatKontrolu(kisiAdi);
-}
-
-function saatKontrolu(kisi) {
-    const saat = new Date().getHours();
-    const alan = document.getElementById('mesaj-yazma-alani');
-    // Eğer saatler arasındaysa mesaj kutusunu göster (Arıza bildirimi her zaman açık kalabilir)
-    if (saat >= 9 && saat < 22) {
-        alan.innerHTML = `<textarea id="msg-text" placeholder="Forum mesajınızı yazın..."></textarea><button class="btn btn-primary" onclick="mesajGonder('${kisi}')">Forumda Paylaş</button>`;
-    } else {
-        alan.innerHTML = `<div class="time-badge">⚠️ Forum mesaj sistemi 09:00 - 22:00 arası aktiftir.</div>`;
-    }
+// Hata durumunda butonu eski haline getiren yardımcı fonksiyon
+function sistemiSifirla(btn, loader) {
+    btn.disabled = false;
+    btn.innerText = "Sorgula";
+    loader.style.display = "none";
 }
