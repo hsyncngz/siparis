@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Site Sakini Bilgi Paneli</title>
+    <style>
+        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; --red: #ef4444; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 450px; position: relative; }
+        .card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; position: relative; }
+        
+        /* Bildirim Çanı Stilleri */
+        .notification-bell { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 24px; z-index: 100; display: none; }
+        .badge { position: absolute; top: -5px; right: -5px; background: var(--red); color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px; font-weight: bold; border: 2px solid #fff; }
+        .notif-popup { display: none; position: absolute; top: 55px; right: 0; width: 250px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; padding: 15px; z-index: 101; }
+        .notif-popup.read { opacity: 0.6; }
+        .notif-popup h5 { margin: 0 0 8px 0; color: var(--primary); font-size: 14px; }
+        .notif-content { font-size: 13px; color: #475569; line-height: 1.4; }
+
+        h2 { text-align: center; color: var(--primary); margin-top: 0; font-size: 22px; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.2s; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; background: var(--primary); color: white; transition: 0.3s; }
+        .info-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f1f5f9; }
+        .info-label { color: #64748b; font-size: 14px; }
+        .info-value { color: #1e293b; font-weight: 700; font-size: 16px; }
+        .debt { color: #dc2626; }
+        #loader { text-align: center; color: var(--accent); display: none; margin-bottom: 15px; font-weight: bold; }
+        
+        /* Duyuru Stilleri */
+        .announcement-section { margin-top: 10px; }
+        .announcement-title { font-size: 18px; color: var(--primary); margin-bottom: 10px; font-weight: bold; }
+        .announcement-item { background: #fff; border-left: 4px solid var(--accent); padding: 12px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .announcement-name { font-weight: bold; color: var(--primary); font-size: 14px; display: block; }
+        .announcement-body { font-size: 13px; color: #475569; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div id="bell-icon" class="notification-bell" onclick="toggleNotif()">
+        🔔 <span id="notif-badge" class="badge">1</span>
+        <div id="notif-popup" class="notif-popup">
+            <h5>📢 Yönetici Mesajı</h5>
+            <div id="notif-text" class="notif-content">Yeni bir bildiriminiz var.</div>
+        </div>
+    </div>
+
+    <div id="login-screen" class="card">
+        <h2>Sakin Girişi</h2>
+        <input type="text" id="username" placeholder="Kullanıcı Adı">
+        <input type="password" id="password" placeholder="Şifre">
+        <div id="loader">İşlem Yapılıyor...</div>
+        <button id="loginBtn" class="btn" onclick="sistemeGirisYap()">Sorgula</button>
+    </div>
+
+    <div id="info-panel" style="display: none;">
+        <div class="card">
+            <h3 id="display-name" style="margin-top:0; text-align:center; color: var(--primary);"></h3>
+            <div class="info-row"><span class="info-label">Daire No</span><span id="val-no" class="info-value"></span></div>
+            <div class="info-row"><span class="info-label">Aidat Borcu</span><span id="val-aidat" class="info-value debt"></span></div>
+            <div class="info-row"><span class="info-label">Yakıt Borcu</span><span id="val-yakit" class="info-value debt"></span></div>
+            <div class="info-row"><span class="info-label">Diğer Borçlar</span><span id="val-diger" class="info-value debt"></span></div>
+        </div>
+
+        <div class="announcement-section">
+            <div class="announcement-title">📢 Güncel Duyurular</div>
+            <div id="announcement-list"></div>
+        </div>
+
+        <button class="btn" style="background:#64748b; margin-top: 10px;" onclick="location.reload()">Güvenli Çıkış</button>
+    </div>
+</div>
+
+<script>
+const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
+const logScriptUrl = "https://script.google.com/macros/s/AKfycbxI9ocolCXT8pqXK85qkuS7KWBf_lHjlcwTBa-FWCokHYQiq7BAupxTkSZq-qrTg5ao/exec";
+
+function toggleNotif() {
+    const popup = document.getElementById('notif-popup');
+    const badge = document.getElementById('notif-badge');
+    
+    if (popup.style.display === 'block') {
+        popup.style.display = 'none';
+    } else {
+        popup.style.display = 'block';
+        // Tıklandığında okundu süsü ver
+        popup.classList.add('read');
+        badge.style.display = 'none';
+    }
+}
+
+async function duyurulariYukle() {
+    try {
+        const response = await fetch('./duyurular.json?t=' + Date.now());
+        const data = await response.json();
+        const listContainer = document.getElementById('announcement-list');
+        listContainer.innerHTML = '';
+        data.duyurular.forEach(duyuru => {
+            listContainer.innerHTML += `
+                <div class="announcement-item">
+                    <span class="announcement-name">${duyuru.baslik} (${duyuru.tarih})</span>
+                    <div class="announcement-body">${duyuru.icerik}</div>
+                </div>`;
+        });
+    } catch (e) { console.error("Duyuru hatası"); }
+}
+
+async function sistemeGirisYap() {
+    const userIn = document.getElementById('username').value.trim();
+    const passIn = document.getElementById('password').value.trim();
+    const loader = document.getElementById('loader');
+    const btn = document.getElementById('loginBtn');
+
+    if (!userIn || !passIn) return alert("Alanları doldurun.");
+    btn.style.display = "none";
+    loader.style.display = "block";
+
+    try {
+        const sResp = await fetch('./sifreler.json?t=' + Date.now());
+        const sData = await sResp.json();
+        const hesap = sData.hesaplar.find(h => h.username === userIn && String(h.password) === passIn);
+
+        if (!hesap) throw new Error("Hata");
+
+        const bResp = await fetch(csvUrl + "&t=" + Date.now());
+        const csv = await bResp.text();
+        const rows = csv.split(/\r?\n/).filter(r => r.trim() !== '');
+        const sep = rows[0].includes(';') ? ';' : ',';
+        const headers = rows[0].split(sep).map(h => h.trim());
+        
+        const veriler = rows.slice(1).map(row => {
+            const cols = row.split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
+            let item = {};
+            headers.forEach((h, i) => item[h] = cols[i] || "");
+            return item;
+        });
+
+        const detay = veriler.find(d => String(d.daireNo) === String(hesap.daireNo));
+
+        if (detay) {
+            document.getElementById('display-name').innerText = "Sn. " + detay.sahibi;
+            document.getElementById('val-no').innerText = detay.daireNo;
+            document.getElementById('val-aidat').innerText = (detay.aidatBorcu || "0") + " TL";
+            document.getElementById('val-yakit').innerText = (detay.yakitBorcu || "0") + " TL";
+            document.getElementById('val-diger').innerText = (detay.digerBorc || "0") + " TL";
+            
+            // BİLDİRİM KONTROLÜ (Sheets'teki 'not' hücresi doluysa)
+            if(detay.not && detay.not !== "") {
+                document.getElementById('bell-icon').style.display = 'block';
+                document.getElementById('notif-text').innerText = detay.not;
+                document.getElementById('notif-badge').style.display = 'block';
+            }
+
+            await duyurulariYukle();
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('info-panel').style.display = 'block';
+        }
+    } catch (e) {
+        alert("Giriş Hatası!");
+        loader.style.display = "none";
+        btn.style.display = "block";
+    }
+}
+</script>
+</body>
+</html>
