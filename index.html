@@ -27,36 +27,21 @@
 <div class="app-container">
     <div id="login-screen" class="card">
         <h2>Sakin Girişi</h2>
-        <input type="text" id="username" placeholder="Kullanıcı Adı" autocomplete="username">
-        <input type="password" id="password" placeholder="Şifre" autocomplete="current-password">
-        <div id="loader">Doğrulanıyor...</div>
+        <input type="text" id="username" placeholder="Kullanıcı Adı">
+        <input type="password" id="password" placeholder="Şifre">
+        <div id="loader">İşlem Yapılıyor...</div>
         <button id="loginBtn" class="btn" onclick="sistemeGirisYap()">Sorgula</button>
     </div>
 
     <div id="info-panel" style="display: none;">
         <div class="card">
             <h3 id="display-name" style="margin-top:0; text-align:center; color: var(--primary);"></h3>
-            
-            <div class="info-row">
-                <span class="info-label">Daire Numarası</span>
-                <span id="val-no" class="info-value"></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Aidat Borcu</span>
-                <span id="val-aidat" class="info-value debt"></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Yakıt Borcu</span>
-                <span id="val-yakit" class="info-value debt"></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Diğer Borçlar</span>
-                <span id="val-diger" class="info-value debt"></span>
-            </div>
-
+            <div class="info-row"><span class="info-label">Daire No</span><span id="val-no" class="info-value"></span></div>
+            <div class="info-row"><span class="info-label">Aidat Borcu</span><span id="val-aidat" class="info-value debt"></span></div>
+            <div class="info-row"><span class="info-label">Yakıt Borcu</span><span id="val-yakit" class="info-value debt"></span></div>
+            <div class="info-row"><span class="info-label">Diğer Borçlar</span><span id="val-diger" class="info-value debt"></span></div>
             <div id="note-box" class="note-box" style="display: none;">
-                <strong style="color: var(--accent)">Yönetici Notu:</strong><br>
-                <span id="val-not" style="display: block; margin-top: 5px; color: #334155;"></span>
+                <strong style="color: var(--accent)">Yönetici Notu:</strong><br><span id="val-not"></span>
             </div>
         </div>
         <button class="btn" style="background:#64748b" onclick="location.reload()">Güvenli Çıkış</button>
@@ -64,21 +49,21 @@
 </div>
 
 <script>
-// Google Veri Kaynakları
 const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
 const logScriptUrl = "https://script.google.com/macros/s/AKfycbxI9ocolCXT8pqXK85qkuS7KWBf_lHjlcwTBa-FWCokHYQiq7BAupxTkSZq-qrTg5ao/exec";
 
-// Google Sheets'e Yazma Fonksiyonu
+// Log Yazma Fonksiyonu (Geliştirilmiş)
 async function logYaz(dNo, durum) {
+    if (!dNo) return;
     try {
+        // Form verisi olarak göndermek Google Script için daha güvenlidir
         await fetch(logScriptUrl, {
             method: 'POST',
-            mode: 'no-cors',
-            cache: 'no-cache',
-            headers: { 'Content-Type': 'application/json' },
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({ daireNo: String(dNo), durum: durum })
         });
-    } catch (e) { console.warn("Log iletilemedi."); }
+    } catch (e) { console.error("Log hatası:", e); }
 }
 
 async function sistemeGirisYap() {
@@ -87,29 +72,25 @@ async function sistemeGirisYap() {
     const loader = document.getElementById('loader');
     const btn = document.getElementById('loginBtn');
 
-    if (!userIn || !passIn) {
-        alert("Lütfen tüm alanları doldurun.");
-        return;
-    }
+    if (!userIn || !passIn) return alert("Alanları doldurun.");
 
     btn.style.display = "none";
     loader.style.display = "block";
 
     try {
-        // 1. Şifre Doğrulama (GitHub sifreler.json)
         const sResp = await fetch('./sifreler.json?t=' + Date.now());
+        if (!sResp.ok) throw new Error("SifreDosyasiYok");
         const sData = await sResp.json();
+        
         const hesap = sData.hesaplar.find(h => h.username === userIn && String(h.password) === passIn);
 
         if (!hesap) {
-            await logYaz(userIn, "basarisiz"); // Hatalı girişi logla
-            throw new Error("GirisHatali");
+            logYaz(userIn, "basarisiz"); 
+            throw new Error("HataliSifre");
         }
 
-        // 2. Borç Bilgilerini Çekme (Google Sheets CSV)
         const bResp = await fetch(csvUrl + "&t=" + Date.now());
         const csv = await bResp.text();
-        
         const rows = csv.split(/\r?\n/).filter(r => r.trim() !== '');
         const sep = rows[0].includes(';') ? ';' : ',';
         const headers = rows[0].split(sep).map(h => h.trim());
@@ -121,14 +102,12 @@ async function sistemeGirisYap() {
             return item;
         });
 
-        // sifreler.json'daki 'daireNo' ile Sheets'teki 'daireNo' eşleştirmesi
         const detay = veriler.find(d => String(d.daireNo) === String(hesap.daireNo));
 
         if (detay) {
             // Başarılı girişi logla
-            await logYaz(hesap.daireNo, "basarili");
+            logYaz(hesap.daireNo, "basarili");
 
-            // Arayüzü Doldur
             document.getElementById('display-name').innerText = "Sn. " + detay.sahibi;
             document.getElementById('val-no').innerText = detay.daireNo;
             document.getElementById('val-aidat').innerText = (detay.aidatBorcu || "0") + " TL";
@@ -140,16 +119,15 @@ async function sistemeGirisYap() {
                 document.getElementById('val-not').innerText = detay.not;
             }
 
-            // Paneli Göster
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('info-panel').style.display = 'block';
         } else {
-            await logYaz(hesap.daireNo, "basarisiz");
-            throw new Error("DaireBulunamadi");
+            logYaz(hesap.daireNo, "basarisiz");
+            throw new Error("VeriBulunamadi");
         }
 
     } catch (e) {
-        alert("Hatalı kullanıcı adı veya şifre!");
+        alert("Hatalı Giriş!");
         loader.style.display = "none";
         btn.style.display = "block";
     }
