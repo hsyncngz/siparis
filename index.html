@@ -3,134 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Site Sakini Bilgi Paneli</title>
+    <title>Site Yönetim Portalı</title>
     <style>
-        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .app-container { width: 100%; max-width: 450px; width: 100%; }
-        .card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h2 { text-align: center; color: var(--primary); margin-top: 0; font-size: 22px; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.2s; }
-        input:focus { border-color: var(--accent); }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; background: var(--primary); color: white; transition: 0.3s; }
-        .btn:active { transform: scale(0.98); }
-        .info-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f1f5f9; }
-        .info-label { color: #64748b; font-size: 14px; }
-        .info-value { color: #1e293b; font-weight: 700; font-size: 16px; }
-        .debt { color: #dc2626; }
-        .note-box { background: #f0f9ff; border-left: 4px solid var(--accent); padding: 15px; margin-top: 15px; border-radius: 8px; font-size: 0.95em; line-height: 1.5; }
-        #loader { text-align: center; color: var(--accent); display: none; margin-bottom: 15px; font-weight: bold; }
+        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f1f5f9; --success: #22c55e; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 500px; }
+        .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        h2, h3 { color: var(--primary); margin-top: 0; text-align: center; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; background: var(--primary); color: white; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+        .debt { color: #dc2626; font-weight: bold; }
+        
+        /* Yeni Özellikler İçin Stiller */
+        .duyuru-item { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        .duyuru-baslik { font-weight: bold; color: #92400e; display: block; }
+        .form-group { margin-top: 20px; padding-top: 15px; border-top: 2px dashed #e2e8f0; }
+        #talepMesaj { font-size: 0.9em; color: var(--success); text-align: center; display: none; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <div id="login-screen" class="card">
-        <h2>Sakin Girişi</h2>
+        <h2>Site Sakini Portalı</h2>
         <input type="text" id="username" placeholder="Kullanıcı Adı">
         <input type="password" id="password" placeholder="Şifre">
-        <div id="loader">İşlem Yapılıyor...</div>
-        <button id="loginBtn" class="btn" onclick="sistemeGirisYap()">Sorgula</button>
+        <button id="loginBtn" class="btn" onclick="sistemeGiris()">Giriş Yap</button>
     </div>
 
     <div id="info-panel" style="display: none;">
-        <div class="card">
-            <h3 id="display-name" style="margin-top:0; text-align:center; color: var(--primary);"></h3>
-            <div class="info-row"><span class="info-label">Daire No</span><span id="val-no" class="info-value"></span></div>
-            <div class="info-row"><span class="info-label">Aidat Borcu</span><span id="val-aidat" class="info-value debt"></span></div>
-            <div class="info-row"><span class="info-label">Yakıt Borcu</span><span id="val-yakit" class="info-value debt"></span></div>
-            <div class="info-row"><span class="info-label">Diğer Borçlar</span><span id="val-diger" class="info-value debt"></span></div>
-            <div id="note-box" class="note-box" style="display: none;">
-                <strong style="color: var(--accent)">Yönetici Notu:</strong><br><span id="val-not"></span>
-            </div>
+        <div class="card" style="background: #fffef0;">
+            <h3 style="font-size: 1.1em; color: #b45309;">📢 Güncel Duyurular</h3>
+            <div id="duyuru-listesi"><small>Duyuru yükleniyor...</small></div>
         </div>
-        <button class="btn" style="background:#64748b" onclick="location.reload()">Güvenli Çıkış</button>
+
+        <div class="card">
+            <h3 id="display-name"></h3>
+            <div class="info-row"><span>Daire No</span><span id="val-no"></span></div>
+            <div class="info-row"><span>Aidat Borcu</span><span id="val-aidat" class="debt"></span></div>
+            <div class="info-row"><span>Yakıt Borcu</span><span id="val-yakit" class="debt"></span></div>
+            <div class="info-row"><span>Diğer Borçlar</span><span id="val-diger" class="debt"></span></div>
+        </div>
+
+        <div class="card">
+            <h3>🛠️ Arıza / Talep Bildir</h3>
+            <select id="talepKonu">
+                <option value="Ariza">Arıza Bildirimi</option>
+                <option value="Temizlik">Temizlik Talebi</option>
+                <option value="Guvenlik">Güvenlik / Şikayet</option>
+                <option value="Diger">Diğer</option>
+            </select>
+            <textarea id="talepAciklama" rows="3" placeholder="Sorunu kısaca açıklayın..."></textarea>
+            <button class="btn" style="background: var(--accent);" onclick="talepGonder()">Gönder</button>
+            <p id="talepMesaj">Talebiniz yönetime iletildi!</p>
+        </div>
+
+        <button class="btn" style="background:#64748b; margin-top: 10px;" onclick="location.reload()">Çıkış</button>
     </div>
 </div>
 
 <script>
-const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
-const logScriptUrl = "https://script.google.com/macros/s/AKfycbxI9ocolCXT8pqXK85qkuS7KWBf_lHjlcwTBa-FWCokHYQiq7BAupxTkSZq-qrTg5ao/exec";
+const scriptUrl = "https://script.google.com/macros/s/AKfycbxI9ocolCXT8pqXK85qkuS7KWBf_lHjlcwTBa-FWCokHYQiq7BAupxTkSZq-qrTg5ao/exec";
+const borcUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
+// Duyurular için ayrı CSV linki (Google Sheets'ten Duyurular sayfasını yayınlayıp buraya ekleyin)
+const duyuruUrl = borcUrl + "&gid=SAYFA_ID_BURAYA"; 
 
-// Log Yazma Fonksiyonu (Geliştirilmiş)
-async function logYaz(dNo, durum) {
-    if (!dNo) return;
-    try {
-        // Form verisi olarak göndermek Google Script için daha güvenlidir
-        await fetch(logScriptUrl, {
-            method: 'POST',
-            mode: 'no-cors', 
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({ daireNo: String(dNo), durum: durum })
-        });
-    } catch (e) { console.error("Log hatası:", e); }
-}
+let aktifDaire = "";
 
-async function sistemeGirisYap() {
-    const userIn = document.getElementById('username').value.trim();
-    const passIn = document.getElementById('password').value.trim();
-    const loader = document.getElementById('loader');
-    const btn = document.getElementById('loginBtn');
-
-    if (!userIn || !passIn) return alert("Alanları doldurun.");
-
-    btn.style.display = "none";
-    loader.style.display = "block";
+async function sistemeGiris() {
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value.trim();
 
     try {
-        const sResp = await fetch('./sifreler.json?t=' + Date.now());
-        if (!sResp.ok) throw new Error("SifreDosyasiYok");
-        const sData = await sResp.json();
-        
-        const hesap = sData.hesaplar.find(h => h.username === userIn && String(h.password) === passIn);
+        const resp = await fetch('./sifreler.json?t=' + Date.now());
+        const data = await resp.json();
+        const hesap = data.hesaplar.find(h => h.username === u && String(h.password) === p);
 
-        if (!hesap) {
-            logYaz(userIn, "basarisiz"); 
-            throw new Error("HataliSifre");
-        }
-
-        const bResp = await fetch(csvUrl + "&t=" + Date.now());
-        const csv = await bResp.text();
-        const rows = csv.split(/\r?\n/).filter(r => r.trim() !== '');
-        const sep = rows[0].includes(';') ? ';' : ',';
-        const headers = rows[0].split(sep).map(h => h.trim());
-        
-        const veriler = rows.slice(1).map(row => {
-            const cols = row.split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
-            let item = {};
-            headers.forEach((h, i) => item[h] = cols[i] || "");
-            return item;
-        });
-
-        const detay = veriler.find(d => String(d.daireNo) === String(hesap.daireNo));
-
-        if (detay) {
-            // Başarılı girişi logla
-            logYaz(hesap.daireNo, "basarili");
-
-            document.getElementById('display-name').innerText = "Sn. " + detay.sahibi;
-            document.getElementById('val-no').innerText = detay.daireNo;
-            document.getElementById('val-aidat').innerText = (detay.aidatBorcu || "0") + " TL";
-            document.getElementById('val-yakit').innerText = (detay.yakitBorcu || "0") + " TL";
-            document.getElementById('val-diger').innerText = (detay.digerBorc || "0") + " TL";
-            
-            if(detay.not && detay.not !== "") {
-                document.getElementById('note-box').style.display = "block";
-                document.getElementById('val-not').innerText = detay.not;
-            }
-
+        if (hesap) {
+            aktifDaire = hesap.daireNo;
+            verileriYukle(hesap.daireNo);
+            duyurulariYukle();
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('info-panel').style.display = 'block';
         } else {
-            logYaz(hesap.daireNo, "basarisiz");
-            throw new Error("VeriBulunamadi");
+            alert("Hatalı Giriş!");
         }
+    } catch (e) { alert("Sistem hatası!"); }
+}
 
-    } catch (e) {
-        alert("Hatalı Giriş!");
-        loader.style.display = "none";
-        btn.style.display = "block";
-    }
+async function verileriYukle(dNo) {
+    const resp = await fetch(borcUrl + "&t=" + Date.now());
+    const csv = await resp.text();
+    // CSV parçalama ve filtreleme (önceki kodlarla aynı mantık)
+    // ... detayları buraya yerleştirilecek
+}
+
+async function duyurulariYukle() {
+    // Örnek statik veri (Buraya Sheets'ten çekme kodu eklenecek)
+    const liste = document.getElementById('duyuru-listesi');
+    liste.innerHTML = `
+        <div class="duyuru-item"><span class="duyuru-baslik">Asansör Bakımı</span>Yarın 10:00-12:00 arası hizmet dışıdır.</div>
+        <div class="duyuru-item"><span class="duyuru-baslik">İlaçlama</span>Cuma günü bahçe ilaçlaması yapılacaktır.</div>
+    `;
+}
+
+async function talepGonder() {
+    const konu = document.getElementById('talepKonu').value;
+    const mesaj = document.getElementById('talepAciklama').value;
+    if(!mesaj) return alert("Lütfen açıklama yazın.");
+
+    await fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ islem: "talepKaydet", daireNo: aktifDaire, konu: konu, mesaj: mesaj })
+    });
+
+    document.getElementById('talepAciklama').value = "";
+    document.getElementById('talepMesaj').style.display = "block";
 }
 </script>
 </body>
