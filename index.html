@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>Site Sakini Bilgi Paneli</title>
     <style>
-        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; --announce-bg: #fffbeb; --announce-border: #f59e0b; }
+        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
         .app-container { width: 100%; max-width: 450px; width: 100%; }
         .card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
@@ -19,12 +19,6 @@
         .info-value { color: #1e293b; font-weight: 700; font-size: 16px; }
         .debt { color: #dc2626; }
         .note-box { background: #f0f9ff; border-left: 4px solid var(--accent); padding: 15px; margin-top: 15px; border-radius: 8px; font-size: 0.95em; line-height: 1.5; }
-        
-        /* Duyurular Bölümü İçin Eklenen Stiller */
-        .announcement-card { background: var(--announce-bg); border: 1px solid var(--announce-border); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-        .announcement-card h4 { margin: 0 0 5px 0; color: #92400e; font-size: 16px; display: flex; align-items: center; }
-        .announcement-card p { margin: 0; color: #78350f; font-size: 14px; line-height: 1.4; }
-        
         #loader { text-align: center; color: var(--accent); display: none; margin-bottom: 15px; font-weight: bold; }
     </style>
 </head>
@@ -40,8 +34,6 @@
     </div>
 
     <div id="info-panel" style="display: none;">
-        <div id="announcement-list"></div>
-
         <div class="card">
             <h3 id="display-name" style="margin-top:0; text-align:center; color: var(--primary);"></h3>
             <div class="info-row"><span class="info-label">Daire No</span><span id="val-no" class="info-value"></span></div>
@@ -57,18 +49,14 @@
 </div>
 
 <script>
-// "duyurular" sekmesini çekmek için gid= parametresi gerekebilir. 
-// Eğer tablonuzda duyurular sayfası 2. sekme ise genellikle gid= numarasını URL'den bulabilirsiniz.
-// Ancak en garantisi: "Web'de Yayınla" kısmından "duyurular" sekmesini seçip linki aşağıya eklemektir.
-const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054 (BU KISMI SİZİNKİYLE DEĞİŞTİRİN)";
+const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
 const logScriptUrl = "https://script.google.com/macros/s/AKfycbxI9ocolCXT8pqXK85qkuS7KWBf_lHjlcwTBa-FWCokHYQiq7BAupxTkSZq-qrTg5ao/exec";
 
-// Duyurular sekmesi için özel URL (Google Sheets'te duyurular sayfasını CSV olarak yayınlayıp linkini buraya yapıştırın)
-const announcementCsvUrl = "BURAYA_DUYURULAR_SEKMESININ_CSV_LINKINI_YAPISTIRIN";
-
+// Log Yazma Fonksiyonu (Geliştirilmiş)
 async function logYaz(dNo, durum) {
     if (!dNo) return;
     try {
+        // Form verisi olarak göndermek Google Script için daha güvenlidir
         await fetch(logScriptUrl, {
             method: 'POST',
             mode: 'no-cors', 
@@ -76,37 +64,6 @@ async function logYaz(dNo, durum) {
             body: JSON.stringify({ daireNo: String(dNo), durum: durum })
         });
     } catch (e) { console.error("Log hatası:", e); }
-}
-
-// DUYURULARI ÇEKEN YENİ FONKSİYON
-async function duyurulariGetir() {
-    try {
-        const response = await fetch(announcementCsvUrl + "&t=" + Date.now());
-        const csv = await response.text();
-        const rows = csv.split(/\r?\n/).filter(r => r.trim() !== '');
-        const sep = rows[0].includes(';') ? ';' : ',';
-        const headers = rows[0].split(sep).map(h => h.trim());
-        
-        const duyurular = rows.slice(1).map(row => {
-            const cols = row.split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
-            let item = {};
-            headers.forEach((h, i) => item[h] = cols[i] || "");
-            return item;
-        });
-
-        const listDiv = document.getElementById('announcement-list');
-        listDiv.innerHTML = ''; // Temizle
-
-        // Son 2 duyuruyu göster
-        duyurular.reverse().slice(0, 2).forEach(d => {
-            listDiv.innerHTML += `
-                <div class="announcement-card">
-                    <h4>📢 ${d.baslik}</h4>
-                    <p>${d.icerik}</p>
-                </div>
-            `;
-        });
-    } catch (e) { console.error("Duyuru çekme hatası:", e); }
 }
 
 async function sistemeGirisYap() {
@@ -132,9 +89,6 @@ async function sistemeGirisYap() {
             throw new Error("HataliSifre");
         }
 
-        // Giriş başarılıysa duyuruları getir
-        await duyurulariGetir();
-
         const bResp = await fetch(csvUrl + "&t=" + Date.now());
         const csv = await bResp.text();
         const rows = csv.split(/\r?\n/).filter(r => r.trim() !== '');
@@ -151,6 +105,7 @@ async function sistemeGirisYap() {
         const detay = veriler.find(d => String(d.daireNo) === String(hesap.daireNo));
 
         if (detay) {
+            // Başarılı girişi logla
             logYaz(hesap.daireNo, "basarili");
 
             document.getElementById('display-name').innerText = "Sn. " + detay.sahibi;
