@@ -10,7 +10,7 @@
         .app-container { width: 100%; max-width: 450px; position: relative; }
         .card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; position: relative; }
         
-        /* Hamburger Menü Stilleri */
+        /* SOL YAN MENÜ */
         .menu-btn { position: absolute; top: 20px; left: 0px; cursor: pointer; font-size: 26px; z-index: 1000; display: none; }
         .sidebar { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: var(--primary); color: white; transition: 0.3s; z-index: 1001; padding: 30px 20px; box-sizing: border-box; }
         .sidebar.active { left: 0; }
@@ -18,28 +18,34 @@
         .sidebar a { display: block; color: #cbd5e1; text-decoration: none; padding: 12px 0; border-bottom: 1px solid #1e293b; font-size: 16px; }
         .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 999; }
 
-        /* Bildirim Çanı */
+        /* SAĞ ÜST BİLDİRİM ÇANI */
         .notification-bell { position: absolute; top: 20px; right: 0px; cursor: pointer; font-size: 24px; z-index: 100; display: none; }
         .badge { position: absolute; top: -5px; right: -5px; background: var(--red); color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px; font-weight: bold; border: 2px solid #fff; }
         .notif-popup { display: none; position: absolute; top: 55px; right: 0; width: 250px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; padding: 15px; z-index: 101; color: #000; }
 
+        /* FORM VE METİNLER */
         h2 { text-align: center; color: var(--primary); margin-top: 0; font-size: 22px; }
         input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; background: var(--primary); color: white; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; background: var(--primary); color: white; transition: 0.3s; }
         .info-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f1f5f9; }
         .debt { color: #dc2626; font-weight: bold; }
         #loader { text-align: center; color: var(--accent); display: none; margin-bottom: 15px; font-weight: bold; }
         
-        .announcement-item { background: #fff; border-left: 4px solid var(--accent); padding: 12px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        /* DUYURU LİSTESİ */
+        .announcement-item { background: #fff; border-left: 4px solid var(--accent); padding: 15px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .announcement-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .announcement-name { font-weight: bold; color: var(--primary); font-size: 15px; }
+        .announcement-date { font-size: 12px; color: #94a3b8; white-space: nowrap; }
+        .announcement-body { font-size: 13.5px; color: #475569; line-height: 1.5; }
     </style>
 </head>
 <body>
 
 <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleMenu()"></div>
 <div id="sidebar" class="sidebar">
-    <h3>Menü</h3>
-    <div id="menu-links-container">Yükleniyor...</div>
-    <a href="#" onclick="location.reload()" style="margin-top: 40px; color: var(--red);">Güvenli Çıkış</a>
+    <h3>Site Menüsü</h3>
+    <div id="menu-links-container">Linkler yükleniyor...</div>
+    <a href="#" onclick="location.reload()" style="margin-top: 40px; color: var(--red); border:none;">🔴 Güvenli Çıkış</a>
 </div>
 
 <div class="app-container">
@@ -48,8 +54,8 @@
     <div id="bell-icon" class="notification-bell" onclick="toggleNotif()">
         🔔 <span id="notif-badge" class="badge">1</span>
         <div id="notif-popup" class="notif-popup">
-            <h5 style="margin:0">📢 Bildirim</h5>
-            <div id="notif-text" style="font-size:13px; margin-top:5px;"></div>
+            <h5 style="margin:0">📢 Özel Bildirim</h5>
+            <div id="notif-text" style="font-size:13px; margin-top:5px; color:#475569;"></div>
         </div>
     </div>
 
@@ -57,34 +63,36 @@
         <h2>Sakin Girişi</h2>
         <input type="text" id="username" placeholder="Kullanıcı Adı">
         <input type="password" id="password" placeholder="Şifre">
-        <div id="loader">İşlem Yapılıyor...</div>
+        <div id="loader">Bilgiler doğrulanıyor...</div>
         <button id="loginBtn" class="btn" onclick="sistemeGirisYap()">Sorgula</button>
     </div>
 
     <div id="info-panel" style="display: none;">
         <div class="card">
-            <h3 id="display-name" style="text-align:center; color: var(--primary);"></h3>
-            <div class="info-row"><span>Daire No</span><span id="val-no"></span></div>
+            <h3 id="display-name" style="text-align:center; color: var(--primary); margin-bottom:15px;"></h3>
+            <div class="info-row"><span>Daire No</span><span id="val-no" style="font-weight:bold;"></span></div>
             <div class="info-row"><span>Aidat Borcu</span><span id="val-aidat" class="debt"></span></div>
             <div class="info-row"><span>Yakıt Borcu</span><span id="val-yakit" class="debt"></span></div>
             <div class="info-row"><span>Diğer Borçlar</span><span id="val-diger" class="debt"></span></div>
         </div>
 
         <div id="announcement-section">
-            <b style="display:block; margin-bottom:10px">📢 Güncel Duyurular</b>
+            <b style="display:block; margin: 10px 0; font-size: 18px; color: var(--primary);">📢 Güncel Duyurular</b>
             <div id="announcement-list"></div>
         </div>
     </div>
 </div>
 
 <script>
+// AYARLAR
 const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRrCjNVASPnz9j40KxsZ7nCoIMBuqQLmxLiXmUM-CXTAp0cW03lM0YlJQMf7IJ054QmTvlTXp3iLMYj/pub?output=csv";
 
-// Menü ve Linkler Fonksiyonu
+// 1. MENÜ FONKSİYONLARI
 function toggleMenu() {
-    document.getElementById('sidebar').classList.toggle('active');
+    const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
-    overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block';
+    sidebar.classList.toggle('active');
+    overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
 }
 
 async function linkleriYukle() {
@@ -96,44 +104,58 @@ async function linkleriYukle() {
         data.menuLinkleri.forEach(link => {
             container.innerHTML += `<a href="${link.url}" target="_blank">${link.ad}</a>`;
         });
-    } catch (e) { console.error("Linkler yüklenemedi"); }
+    } catch (e) { console.error("Linkler okunamadı."); }
 }
 
+// 2. BİLDİRİM FONKSİYONLARI
 function toggleNotif() {
     const popup = document.getElementById('notif-popup');
     popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
     document.getElementById('notif-badge').style.display = 'none';
+    popup.style.opacity = "0.7"; // Okundu efekti
 }
 
+// 3. DUYURU FONKSİYONLARI
 async function duyurulariYukle() {
     try {
         const response = await fetch('./duyurular.json?t=' + Date.now());
         const data = await response.json();
         const listContainer = document.getElementById('announcement-list');
         listContainer.innerHTML = '';
-        data.duyurular.forEach(d => {
-            listContainer.innerHTML += `<div class="announcement-item"><b>${d.baslik}</b><br><small>${d.tarih}</small><p style="margin:5px 0 0 0; font-size:13px;">${d.icerik}</p></div>`;
+        // En yeni duyuru üstte
+        data.duyurular.reverse().forEach(d => {
+            listContainer.innerHTML += `
+                <div class="announcement-item">
+                    <div class="announcement-header">
+                        <span class="announcement-name">📢 ${d.baslik}</span>
+                        <span class="announcement-date">${d.tarih}</span>
+                    </div>
+                    <div class="announcement-body">${d.icerik}</div>
+                </div>`;
         });
-    } catch (e) { console.error("Duyuru hatası"); }
+    } catch (e) { console.error("Duyurular yüklenemedi."); }
 }
 
+// 4. ANA GİRİŞ SİSTEMİ
 async function sistemeGirisYap() {
     const userIn = document.getElementById('username').value.trim();
     const passIn = document.getElementById('password').value.trim();
     const loader = document.getElementById('loader');
     const btn = document.getElementById('loginBtn');
 
-    if (!userIn || !passIn) return alert("Alanları doldurun.");
+    if (!userIn || !passIn) return alert("Lütfen kullanıcı adı ve şifrenizi girin.");
     btn.style.display = "none";
     loader.style.display = "block";
 
     try {
+        // Şifre kontrolü
         const sResp = await fetch('./sifreler.json?t=' + Date.now());
         const sData = await sResp.json();
         const hesap = sData.hesaplar.find(h => h.username === userIn && String(h.password) === passIn);
 
-        if (!hesap) throw new Error("Hata");
+        if (!hesap) throw new Error("GirisHatasi");
 
+        // Sheets verisi çekme
         const bResp = await fetch(csvUrl + "&t=" + Date.now());
         const csv = await bResp.text();
         const rows = csv.split(/\r?\n/).filter(r => r.trim() !== '');
@@ -149,18 +171,21 @@ async function sistemeGirisYap() {
         const detay = veriler.find(d => String(d.daireNo) === String(hesap.daireNo));
 
         if (detay) {
+            // Ekrana Verileri Yaz
             document.getElementById('display-name').innerText = "Sn. " + detay.sahibi;
             document.getElementById('val-no').innerText = detay.daireNo;
             document.getElementById('val-aidat').innerText = (detay.aidatBorcu || "0") + " TL";
             document.getElementById('val-yakit').innerText = (detay.yakitBorcu || "0") + " TL";
             document.getElementById('val-diger').innerText = (detay.digerBorc || "0") + " TL";
             
+            // Özel Bildirim Kontrolü
             if(detay.not && detay.not !== "") {
                 document.getElementById('bell-icon').style.display = 'block';
                 document.getElementById('notif-text').innerText = detay.not;
+                document.getElementById('notif-badge').style.display = 'block';
             }
 
-            // Menüyü ve Duyuruları Aktif Et
+            // Arayüzü Değiştir
             document.getElementById('menu-icon').style.display = 'block';
             await linkleriYukle();
             await duyurulariYukle();
@@ -169,7 +194,7 @@ async function sistemeGirisYap() {
             document.getElementById('info-panel').style.display = 'block';
         }
     } catch (e) {
-        alert("Giriş Hatası!");
+        alert("Kullanıcı adı veya şifre hatalı!");
         loader.style.display = "none";
         btn.style.display = "block";
     }
