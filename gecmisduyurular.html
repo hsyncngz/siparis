@@ -10,10 +10,8 @@
         .app-container { width: 100%; max-width: 450px; }
         .card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         h2 { text-align: center; color: var(--primary); margin-top: 0; font-size: 22px; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
-        .btn-home { width: 100%; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; background: var(--primary); color: white; text-decoration: none; display: block; text-align: center; margin-bottom: 20px; }
-        
-        /* DUYURU STİLLERİ */
-        .announcement-item { background: #fff; border-left: 4px solid #cbd5e1; padding: 15px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .btn-home { width: 100%; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; background: var(--primary); color: white; text-decoration: none; display: block; text-align: center; margin-bottom: 20px; }
+        .announcement-item { background: #fdfdfd; border-left: 4px solid #cbd5e1; padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #f1f5f9; }
         .announcement-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .announcement-name { font-weight: bold; color: var(--primary); font-size: 15px; }
         .announcement-date { font-size: 12px; color: #94a3b8; }
@@ -21,17 +19,13 @@
     </style>
 </head>
 <body>
-
 <div class="app-container">
     <a href="index.html" class="btn-home">🏠 Ana Sayfaya Dön</a>
-    
     <div class="card">
         <h2>📢 Duyuru Arşivi</h2>
-        <p style="text-align: center; font-size: 12px; color: #64748b;">(Eskiden Yeniye Sıralanmıştır)</p>
         <div id="archive-list">Yükleniyor...</div>
     </div>
 </div>
-
 <script>
 async function arsiviYukle() {
     try {
@@ -39,8 +33,6 @@ async function arsiviYukle() {
         const data = await response.json();
         const listContainer = document.getElementById('archive-list');
         listContainer.innerHTML = ''; 
-
-        // .reverse() kullanmıyoruz, JSON'daki doğal sırasıyla (Eskiden Yeniye) bırakıyoruz
         data.duyurular.forEach(d => {
             listContainer.innerHTML += `
                 <div class="announcement-item">
@@ -51,12 +43,8 @@ async function arsiviYukle() {
                     <div class="announcement-body">${d.icerik}</div>
                 </div>`;
         });
-    } catch (e) {
-        document.getElementById('archive-list').innerHTML = "Arşiv yüklenirken bir hata oluştu.";
-    }
+    } catch (e) { document.getElementById('archive-list').innerHTML = "Hata oluştu."; }
 }
-
-// Sayfa açıldığında yükle
 arsiviYukle();
 </script>
 </body>
