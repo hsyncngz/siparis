@@ -11,7 +11,9 @@
         .card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         h2 { text-align: center; color: var(--primary); margin-top: 0; font-size: 22px; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
         .btn-home { width: 100%; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; background: var(--primary); color: white; text-decoration: none; display: block; text-align: center; margin-bottom: 20px; }
-        .announcement-item { background: #fdfdfd; border-left: 4px solid #cbd5e1; padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #f1f5f9; }
+        
+        /* Duyuru Tasarımı (Index ile Aynı) */
+        .announcement-item { background: #fdfdfd; border-left: 4px solid var(--accent); padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #f1f5f9; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .announcement-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .announcement-name { font-weight: bold; color: var(--primary); font-size: 15px; }
         .announcement-date { font-size: 12px; color: #94a3b8; }
@@ -23,17 +25,24 @@
     <a href="index.html" class="btn-home">🏠 Ana Sayfaya Dön</a>
     <div class="card">
         <h2>📢 Duyuru Arşivi</h2>
+        <p style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: -5px; margin-bottom: 15px;">(En yeni duyurular en üsttedir)</p>
         <div id="archive-list">Yükleniyor...</div>
     </div>
 </div>
+
 <script>
 async function arsiviYukle() {
     try {
+        // Cache engellemek için t= parametresi ekliyoruz
         const response = await fetch('./duyurular.json?t=' + Date.now());
         const data = await response.json();
         const listContainer = document.getElementById('archive-list');
         listContainer.innerHTML = ''; 
-        data.duyurular.forEach(d => {
+
+        // .slice().reverse() ile listenin kopyasını alıp ters çeviriyoruz (Yeniden Eskiye)
+        const siraliDuyurular = data.duyurular.slice().reverse();
+
+        siraliDuyurular.forEach(d => {
             listContainer.innerHTML += `
                 <div class="announcement-item">
                     <div class="announcement-header">
@@ -43,7 +52,9 @@ async function arsiviYukle() {
                     <div class="announcement-body">${d.icerik}</div>
                 </div>`;
         });
-    } catch (e) { document.getElementById('archive-list').innerHTML = "Hata oluştu."; }
+    } catch (e) { 
+        document.getElementById('archive-list').innerHTML = "Duyurular şu an yüklenemiyor."; 
+    }
 }
 arsiviYukle();
 </script>
