@@ -1,10 +1,7 @@
 {
   "menuLinkleri": [
+    { "ad": "Duyuru Arşivi", "url": "gecmisduyurular.html" },
     { "ad": "Web Sitemiz", "url": "https://www.siteadi.com" },
-    { "ad": "Ödeme Yap", "url": "https://www.banka-odeme.com" },
-    { "ad": "Site Tüzüğü", "url": "https://www.siteadi.com/tuzuk.pdf" },
-    { "ad": "İletişim", "url": "tel:+905550000000" },
-    { "ad": "WhatsApp Grubu", "url": "https://chat.whatsapp.com/davetlinki" },
-    { "ad": "Link", "url": "https://google.com" }
+    { "ad": "İletişim", "url": "tel:+905550000000" }
   ]
 }
