@@ -1,6 +1,11 @@
 {
   "duyurular": [
     {
+      "tarih": "25.12.2025",
+      "baslik": "Bakımı",
+      "icerik": "A blok asansörü yarın saat 10:00 - 12:00 arasında periyodik bakıma alınacaktır."
+    },
+    {
       "tarih": "23.12.2025",
       "baslik": "Asansör Bakımı",
       "icerik": "A blok asansörü yarın saat 10:00 - 12:00 arasında periyodik bakıma alınacaktır."
@@ -19,11 +24,6 @@
       "tarih": "10.12.2025",
       "baslik": "Bahçe İlaçlaması",
       "icerik": "Site bahçemiz böceklere karşı bu Cumartesi günü sabah erkenden ilaçlanacaktır."
-    },
-    {
-      "tarih": "01.12.2025",
-      "baslik": "Yeni Yönetici Seçimi",
-      "icerik": "Yıllık olağan genel kurulumuz Ocak ayının ilk haftasında yapılacaktır."
     }
   ]
 }
